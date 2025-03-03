@@ -295,7 +295,7 @@ function initTopDonationBanner() {
     
     // Handle donate button click
     donateButton.addEventListener('click', () => {
-        window.open('https://ko-fi.com/genipedia', '_blank');
+        window.open('https://ko-fi.com/mathieudvv', '_blank');
     });
     
     // Handle close button click
@@ -383,7 +383,7 @@ function init() {
     
     // Ko-Fi button
     kofiButton.addEventListener('click', () => {
-        window.open('https://ko-fi.com/genipedia', '_blank');
+        window.open('https://ko-fi.com/mathieudvv', '_blank');
     });
     
     // Twitter button

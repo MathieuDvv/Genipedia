@@ -84,7 +84,7 @@ function maybeShowDonationBanner(container) {
         donateButton.textContent = getLocaleString('support_button');
         
         donateButton.addEventListener('click', () => {
-            window.open('https://ko-fi.com/L3L41BBPRQ', '_blank');
+            window.open('https://ko-fi.com/mathieudvv', '_blank');
             donationBanner.style.display = 'none';
             donationBannerShown = true;
         });
