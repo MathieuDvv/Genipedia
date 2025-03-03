@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Genipedia - Generate Wikipedia-style articles on any topic using AI.">
+    <title>Genipedia</title>
+    <link rel="stylesheet" href="src/styles/styles.css?v=1.8">
+    <link rel="stylesheet" href="src/styles/mobile.css?v=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="src/assets/Genipedia logo.png">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+    <!-- Top donation banner -->
+    <div id="top-donation-banner" class="top-donation-banner">
+        <div class="banner-content">
+            <span id="top-banner-message">First version of Genipedia is available, consider donating</span>
+            <div class="banner-actions">
+                <button id="top-banner-donate" class="banner-donate-button">
+                    <i data-lucide="coffee"></i>
+                    <span>Donate</span>
+                </button>
+                <button id="top-banner-close" class="banner-close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- Fixed buttons container for Ko-Fi and Customize buttons -->
+        <div class="fixed-buttons-container">
+            <button class="kofi-button" id="kofi-button">
+                <i data-lucide="coffee"></i>
+            </button>
+            <button class="twitter-button" id="twitter-button">
+                <i data-lucide="twitter"></i>
+            </button>
+            <button class="bug-report-button" id="bug-report-button">
+                <i data-lucide="bug"></i>
+            </button>
+            <button class="customize-button-fixed-visible" id="customize-button">
+                <i data-lucide="settings"></i>
+            </button>
+        </div>
+
+        <div id="search-container" class="search-container">
+            <div class="title-container">
+                <div id="rotating-icon-container" class="rotating-icon-container">
+                    <i data-lucide="globe" class="rotating-icon"></i>
+                </div>
+                <h1 class="site-title">Genipedia</h1>
+                <p class="site-subtitle" 
+                   data-subtitle-en="AI-Generated Wikipedia-Style Articles"
+                   data-subtitle-fr="Articles de style Wikipédia générés par IA"
+                   data-subtitle-es="Artículos estilo Wikipedia generados por IA"
+                   data-subtitle-de="KI-generierte Artikel im Wikipedia-Stil"
+                   data-subtitle-ja="AI生成のウィキペディアスタイル記事">AI-Generated Wikipedia-Style Articles</p>
+            </div>
+            
+            <div class="search-bar-container">
+                <input type="text" id="search-bar" placeholder="">
+                <div class="style-selector">
+                    <select id="writing-style-select">
+                        <option value="formal">Formal</option>
+                        <option value="accessible">Accessible</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="explanatory">Explanatory</option>
+                        <option value="concise">Concise</option>
+                    </select>
+                    <i data-lucide="chevron-down"></i>
+                </div>
+                <div class="language-selector">
+                    <select id="language-select">
+                        <option value="en" selected>English</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="ja">日本語</option>
+                    </select>
+                    <i data-lucide="chevron-down"></i>
+                </div>
+                <button id="search-button">Search</button>
+            </div>
+            
+            <!-- Container for selectors in mobile view -->
+            <div class="selectors-container">
+                <!-- Will be populated by JavaScript for mobile view -->
+            </div>
+            
+            <!-- History section under search bar -->
+            <div class="history-section">
+                <div class="history-toggle">
+                    <span class="history-toggle-text">Previous searches</span>
+                    <i data-lucide="chevron-down" class="history-toggle-arrow"></i>
+                </div>
+                <div class="history-content">
+                    <ul class="history-list" id="history-list">
+                        <!-- History items will be added here dynamically -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <aside class="sidebar-left">
+                <div id="toc-container"></div>
+                <div id="geek-metrics-container"></div>
+            </aside>
+            
+            <main>
+                <div id="article-container" class="hidden"></div>
+            </main>
+        </div>
+
+        <!-- Customization Modal -->
+        <div id="customization-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="customize-title">Customize Genipedia</h2>
+                    <button id="close-modal" class="close-button">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Theme Toggle -->
+                    <div class="customization-section">
+                        <h3 class="customization-section-title" id="theme-title">Theme</h3>
+                        <div class="theme-options">
+                            <div id="theme-light" class="theme-option light-theme active">
+                                <i data-lucide="sun"></i>
+                                <span id="theme-light-text">Light</span>
+                            </div>
+                            <div id="theme-dark" class="theme-option dark-theme">
+                                <i data-lucide="moon"></i>
+                                <span id="theme-dark-text">Dark</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Accent Color -->
+                    <div class="customization-section">
+                        <h3 class="customization-section-title" id="accent-color-title">Accent Color</h3>
+                        <div class="color-options">
+                            <div id="color-black" class="color-option active" style="background-color: #000;"></div>
+                            <div id="color-blue" class="color-option blue"></div>
+                            <div id="color-pink" class="color-option pink"></div>
+                            <div id="color-yellow" class="color-option yellow"></div>
+                            <div id="color-green" class="color-option green"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Font Family -->
+                    <div class="customization-section">
+                        <h3 class="customization-section-title" id="font-title">Font</h3>
+                        <div class="font-options">
+                            <div id="font-inter" class="font-option inter active">
+                                Inter
+                            </div>
+                            <div id="font-serif" class="font-option serif">
+                                Serif
+                            </div>
+                            <div id="font-mono" class="font-option mono">
+                                Mono
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Font Size -->
+                    <div class="customization-section">
+                        <h3 class="customization-section-title" id="font-size-title">Font Size</h3>
+                        <div class="font-size-control">
+                            <div class="font-size-slider-container">
+                                <span class="font-size-label small">x0.5</span>
+                                <input type="range" id="font-size-slider" min="1" max="4" value="2" class="font-size-slider">
+                                <span class="font-size-label large">x2</span>
+                            </div>
+                            <div class="font-size-markers">
+                                <span class="font-size-marker small"></span>
+                                <span class="font-size-marker current"></span>
+                                <span class="font-size-marker"></span>
+                                <span class="font-size-marker large"></span>
+                            </div>
+                            <div class="font-size-visual">
+                                <span class="font-size-example">Aa</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Beta Features -->
+                    <div class="customization-section">
+                        <h3 class="customization-section-title" id="beta-features-title">
+                            Beta Features
+                            <i data-lucide="sparkles" class="beta-icon"></i>
+                        </h3>
+                        <div class="beta-features">
+                            <div class="beta-feature">
+                                <div class="beta-feature-header">
+                                    <span class="beta-tag">Beta</span>
+                                    <label for="image-suggestion-toggle" class="beta-feature-label" id="image-suggestion-label">
+                                        AI Image Suggestion
+                                    </label>
+                                    <div class="beta-info-container">
+                                        <i data-lucide="info" class="beta-info-icon"></i>
+                                        <div class="beta-tooltip">
+                                            This feature uses AI to suggest better image search terms for more relevant images. Beta features may not work perfectly and could affect performance.
+                                        </div>
+                                    </div>
+                                    <div class="toggle-switch-container">
+                                        <input type="checkbox" id="image-suggestion-toggle" class="toggle-switch-checkbox">
+                                        <label for="image-suggestion-toggle" class="toggle-switch"></label>
+                                    </div>
+                                </div>
+                                <p class="beta-feature-description">
+                                    Uses AI to suggest better image search terms for more relevant article images
+                                </p>
+                                <div id="image-suggestion-version-container" style="display: none; margin-top: 10px;">
+                                    <div class="version-selection">
+                                        <label for="image-suggestion-version-select">Version:</label>
+                                        <select id="image-suggestion-version-select" class="version-select">
+                                            <option value="v1">V1</option>
+                                            <option value="v2">V2</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Age-targeted writing style Beta Feature -->
+                            <div class="beta-feature">
+                                <div class="beta-feature-header">
+                                    <span class="beta-tag">V1</span>
+                                    <label for="age-targeted-toggle" class="beta-feature-label" id="age-targeted-label">
+                                        Age-Targeted Writing
+                                    </label>
+                                    <div class="beta-info-container">
+                                        <i data-lucide="info" class="beta-info-icon"></i>
+                                        <div class="beta-tooltip">
+                                            This feature adapts the writing style to specific age groups. When enabled, it replaces the standard writing styles with age-targeted options.
+                                        </div>
+                                    </div>
+                                    <div class="toggle-switch-container">
+                                        <input type="checkbox" id="age-targeted-toggle" class="toggle-switch-checkbox">
+                                        <label for="age-targeted-toggle" class="toggle-switch"></label>
+                                    </div>
+                                </div>
+                                <p class="beta-feature-description">
+                                    Adapts content to specific age groups with appropriate vocabulary and complexity
+                                </p>
+                            </div>
+                            
+                            <!-- ElevenLabs Text-to-Speech Beta Feature -->
+                            <div class="beta-feature">
+                                <div class="beta-feature-header">
+                                    <span class="beta-tag">V1</span>
+                                    <label for="elevenlabs-toggle" class="beta-feature-label" id="elevenlabs-label">
+                                        Text-to-Speech
+                                    </label>
+                                    <div class="beta-info-container">
+                                        <i data-lucide="info" class="beta-info-icon"></i>
+                                        <div class="beta-tooltip">
+                                            This feature uses text-to-speech to convert article summaries to speech. By default, a free API is used, but you can also use ElevenLabs for higher quality.
+                                        </div>
+                                    </div>
+                                    <div class="toggle-switch-container">
+                                        <input type="checkbox" id="elevenlabs-toggle" class="toggle-switch-checkbox">
+                                        <label for="elevenlabs-toggle" class="toggle-switch"></label>
+                                    </div>
+                                </div>
+                                <p class="beta-feature-description">
+                                    Converts article summaries to natural-sounding speech
+                                </p>
+                                <div class="elevenlabs-api-container" style="display: none; margin-top: 10px;">
+                                    <div class="tts-api-selection">
+                                        <label for="tts-api-select">TTS API:</label>
+                                        <select id="tts-api-select" class="tts-api-select">
+                                            <option value="free">Free API</option>
+                                            <option value="elevenlabs">ElevenLabs (Custom API Key)</option>
+                                        </select>
+                                    </div>
+                                    <div id="elevenlabs-key-container" style="display: none; margin-top: 10px;">
+                                        <input type="text" id="elevenlabs-api-key" placeholder="Enter your ElevenLabs API key" class="api-key-input">
+                                        <button id="save-elevenlabs-api-key" class="api-key-save-button">Save</button>
+                                        <div class="api-key-status" id="elevenlabs-api-key-status"></div>
+                                        <div class="api-key-info">
+                                            Get your API key from <a href="https://elevenlabs.io/speech-synthesis" target="_blank" rel="noopener">ElevenLabs</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Article Caching Beta Feature -->
+                            <div class="beta-feature">
+                                <div class="beta-feature-header">
+                                    <span class="beta-tag">V1</span>
+                                    <label for="article-caching-toggle" class="beta-feature-label" id="article-caching-label">
+                                        Article Caching
+                                    </label>
+                                    <div class="beta-info-container">
+                                        <i data-lucide="info" class="beta-info-icon"></i>
+                                        <div class="beta-tooltip">
+                                            This feature saves articles and images locally to reduce loading times and API usage. Disable if you prefer not to store content on your device.
+                                        </div>
+                                    </div>
+                                    <div class="toggle-switch-container">
+                                        <input type="checkbox" id="article-caching-toggle" class="toggle-switch-checkbox">
+                                        <label for="article-caching-toggle" class="toggle-switch"></label>
+                                    </div>
+                                </div>
+                                <p class="beta-feature-description">
+                                    Saves articles and images locally to reduce loading times and API usage
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Licenses -->
+                    <div class="customization-section">
+                        <button id="licenses-button" class="full-width-button">
+                            <i data-lucide="copyright"></i>
+                            <span>Licenses</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Licenses Popup -->
+    <div id="licenses-popup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Licenses</h3>
+                <button id="close-licenses-popup" class="close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="popup-body">
+                <div class="license-item">
+                    <div class="license-logo">
+                        <img src="https://raw.githubusercontent.com/deepseek-ai/DeepSeek-Coder-V2/main/figures/logo.svg" alt="DeepSeek AI Logo" width="24" height="24">
+                    </div>
+                    <div class="license-info">
+                        <h4>DeepSeek AI</h4>
+                        <p>Used for article generation. DeepSeek's models are licensed under the Apache 2.0 license.</p>
+                    </div>
+                </div>
+                <div class="license-item">
+                    <div class="license-logo">
+                        <img src="https://unsplash.com/favicon-32x32.png" alt="Unsplash Logo" width="24" height="24">
+                    </div>
+                    <div class="license-info">
+                        <h4>Unsplash</h4>
+                        <p>Used for article images. All photos are licensed under the Unsplash License.</p>
+                    </div>
+                </div>
+                <div class="license-item">
+                    <div class="license-logo">
+                        <img src="https://elevenlabs.io/favicon.ico" alt="ElevenLabs Logo" width="24" height="24">
+                    </div>
+                    <div class="license-info">
+                        <h4>ElevenLabs</h4>
+                        <p>Used for text-to-speech. ElevenLabs' services are subject to their Terms of Service.</p>
+                    </div>
+                </div>
+                <div class="license-item">
+                    <div class="license-logo">
+                        <img src="https://lucide.dev/favicon.ico" alt="Lucide Icons Logo" width="24" height="24">
+                    </div>
+                    <div class="license-info">
+                        <h4>Lucide Icons</h4>
+                        <p>Used for UI icons. Licensed under the ISC License.</p>
+                    </div>
+                </div>
+                <div class="license-item">
+                    <div class="license-logo">
+                        <img src="https://www.anthropic.com/favicon.ico" alt="Anthropic Logo" width="24" height="24">
+                    </div>
+                    <div class="license-info">
+                        <h4>Claude</h4>
+                        <p>Used for code generation. Anthropic's Claude is subject to their Terms of Service.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="back-to-top" class="back-to-top">
+        <i data-lucide="arrow-up"></i>
+    </div>
+
+    <!-- Bug Report Popup -->
+    <div id="bug-report-popup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3>Report a Bug</h3>
+                <button id="close-bug-popup" class="close-button">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="popup-body">
+                <p>If you've encountered a bug or have any issues with Genipedia, please contact us at:</p>
+                <p class="contact-email"><a href="mailto:admin@genipedia.org">admin@genipedia.org</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <!-- Load utils.js first to make sure it's available for other modules -->
+    <script src="src/scripts/utils.js?v=1.8"></script>
+    
+    <!-- Initialize AIPediaLocales with a fallback in case module loading fails -->
+    <script>
+        // Create a fallback AIPediaLocales object
+        if (!window.AIPediaLocales) {
+            window.AIPediaLocales = {
+                locales: {},
+                getLocaleString: function(key) { return key; },
+                setLocale: function(locale) { console.log('Fallback setLocale:', locale); },
+                getLocale: function() { return 'en'; },
+                loadSavedLocale: function() { console.log('Fallback loadSavedLocale'); },
+                updateUIWithLocale: function() { console.log('Fallback updateUIWithLocale'); }
+            };
+        }
+    </script>
+    
+    <!-- Load locales.js -->
+    <script src="src/scripts/locales.js?v=1.8"></script>
+    
+    <!-- Initialize Lucide icons after the DOM is loaded -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) {
+                window.lucide.createIcons({
+                    attrs: {
+                        class: ['lucide'],
+                        strokeWidth: '2',
+                        stroke: 'currentColor',
+                        fill: 'none',
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round'
+                    }
+                });
+                console.log('Lucide icons initialized on page load');
+            } else {
+                console.error('Lucide library not loaded properly');
+            }
+        });
+    </script>
+    
+    <!-- Load main.js directly -->
+    <script type="module" src="src/scripts/main.js?v=1.8"></script>
+</body>
+</html> 

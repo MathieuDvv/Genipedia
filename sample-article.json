@@ -1,0 +1,38 @@
+{
+  "title": "Artificial Intelligence",
+  "summary": "Artificial Intelligence (AI) is a branch of computer science that aims to create systems capable of performing tasks that would normally require human intelligence. These tasks include learning, reasoning, problem-solving, perception, and language understanding.",
+  "sections": [
+    {
+      "id": "section-history",
+      "title": "History of AI",
+      "content": "<p>The concept of artificial intelligence dates back to ancient history with myths and stories about artificial beings endowed with intelligence or consciousness by master craftsmen. However, the field of AI research was founded at a workshop held on the campus of <a class='wiki-link' href='?q=Dartmouth College'>Dartmouth College</a> during the summer of 1956.</p><p>The early years of AI were marked by great enthusiasm and significant progress. Between the 1950s and 1970s, AI research tackled and solved problems that were intellectually difficult for humans but relatively straightforward for computers. However, researchers encountered the <a class='wiki-link' href='?q=AI Winter'>AI Winter</a> in the 1970s when many AI projects failed to deliver on their promises.</p>"
+    },
+    {
+      "id": "section-approaches",
+      "title": "Approaches to AI",
+      "content": "<p>There are several different approaches to artificial intelligence:</p><ul><li><strong><a class='wiki-link' href='?q=Symbolic AI'>Symbolic AI</a></strong>: Based on high-level symbolic representations of problems, logic, and search.</li><li><strong><a class='wiki-link' href='?q=Machine Learning'>Machine Learning</a></strong>: Systems that can learn from data rather than following explicitly programmed instructions.</li><li><strong><a class='wiki-link' href='?q=Deep Learning'>Deep Learning</a></strong>: A subset of machine learning based on artificial neural networks with multiple layers.</li><li><strong><a class='wiki-link' href='?q=Evolutionary Computation'>Evolutionary Computation</a></strong>: Methods inspired by biological evolution.</li></ul>"
+    },
+    {
+      "id": "section-applications",
+      "title": "Applications of AI",
+      "content": "<p>AI has been applied to a wide range of fields and problems:</p><ul><li><strong>Healthcare</strong>: Disease diagnosis, drug discovery, and personalized treatment plans.</li><li><strong>Finance</strong>: Algorithmic trading, fraud detection, and risk assessment.</li><li><strong>Transportation</strong>: <a class='wiki-link' href='?q=Self-driving Cars'>Self-driving cars</a>, traffic prediction, and route optimization.</li><li><strong>Entertainment</strong>: Video games, content recommendation, and creative arts.</li><li><strong>Customer Service</strong>: Chatbots and virtual assistants.</li></ul><p>The potential applications of AI continue to expand as the technology advances.</p>"
+    },
+    {
+      "id": "section-ethics",
+      "title": "Ethics and Concerns",
+      "content": "<p>The development of AI raises numerous ethical concerns and potential risks:</p><ul><li><strong>Privacy</strong>: AI systems often require large amounts of data, raising concerns about surveillance and privacy.</li><li><strong>Bias</strong>: AI systems can perpetuate or amplify existing biases in their training data.</li><li><strong>Unemployment</strong>: Automation through AI could lead to job displacement.</li><li><strong>Autonomy</strong>: Questions about the degree to which AI systems should make decisions without human oversight.</li><li><strong><a class='wiki-link' href='?q=Existential Risk from AI'>Existential Risk</a></strong>: Concerns about advanced AI systems potentially posing risks to humanity.</li></ul>"
+    },
+    {
+      "id": "section-future",
+      "title": "Future of AI",
+      "content": "<p>The future development of AI is likely to include:</p><ul><li><strong>Increased Integration</strong>: AI becoming more integrated into everyday technologies and services.</li><li><strong>Enhanced Capabilities</strong>: Improvements in natural language processing, computer vision, and reasoning abilities.</li><li><strong>Greater Autonomy</strong>: AI systems capable of more independent decision-making and action.</li><li><strong>Ethical Frameworks</strong>: Development of robust ethical guidelines and regulations for AI development and deployment.</li><li><strong><a class='wiki-link' href='?q=Artificial General Intelligence'>Artificial General Intelligence</a></strong>: Progress toward AI systems with human-level general intelligence.</li></ul>"
+    }
+  ],
+  "references": [
+    "Russell, S. J., & Norvig, P. (2020). Artificial Intelligence: A Modern Approach (4th ed.). Pearson.",
+    "Bostrom, N. (2014). Superintelligence: Paths, Dangers, Strategies. Oxford University Press.",
+    "LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.",
+    "Kaplan, A., & Haenlein, M. (2019). Siri, Siri, in my hand: Who's the fairest in the land? On the interpretations, illustrations, and implications of artificial intelligence. Business Horizons, 62(1), 15-25.",
+    "Tegmark, M. (2017). Life 3.0: Being Human in the Age of Artificial Intelligence. Knopf."
+  ]
+} 
