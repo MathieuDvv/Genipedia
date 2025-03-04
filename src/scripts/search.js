@@ -74,7 +74,7 @@ export async function performSearch(query, language, writingStyle) {
     // Show loading state
     const loadingElement = document.createElement('div');
     loadingElement.className = 'loading';
-    const estimatedTime = estimateWaitTime(query);
+    const estimatedTime = estimateWaitTime(query)*2;
     loadingElement.innerHTML = `
         <div class="loading-spinner"></div>
         <div class="estimated-time">${getLocaleString('estimated_time', estimatedTime)}</div>

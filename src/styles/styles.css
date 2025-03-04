@@ -712,6 +712,7 @@ body.search-state .site-subtitle {
     color: var(--accent-color);
     text-decoration: none;
     transition: color 0.2s ease;
+    z-index: 1002;
 }
 
 .image-caption a:hover {
@@ -2573,6 +2574,7 @@ body.dark-theme.accent-black .back-to-top {
     position: absolute;
     top: 0px;
     right: 0px;
+    z-index: 1002;
 }
 
 .article-action-button {
