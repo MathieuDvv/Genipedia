@@ -1,11 +1,13 @@
-# AIPedia
+# Genipedia
 
-AIPedia is a web application that provides AI-generated articles on various topics with a clean, responsive interface.
+Genipedia is a web application that provides AI-generated articles on various topics with a clean, responsive interface.
+
+Available right now on genipedia.org
 
 ## Project Structure
 
 ```
-AIPedia/
+Genipedia/
 ├── app.js                  # Main entry point that loads the server
 ├── index.html              # Main HTML file
 ├── package.json            # Project dependencies and scripts
