@@ -1,6 +1,6 @@
-# AIPedia Server Proxy
+# Genipedia Server Proxy
 
-This server acts as a proxy for the AIPedia web application, securing API keys and endpoints while maintaining all existing functionality.
+This server acts as a proxy for the Genipedia web application, securing API keys and endpoints while maintaining all existing functionality.
 
 ## Features
 
