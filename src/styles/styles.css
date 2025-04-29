@@ -439,23 +439,25 @@ body:has(.modal.visible) .fixed-buttons-container {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background-color: none;
+    background-color: transparent;
     padding: 10px;
+    display: block;
 }
 
 .dark-theme .title-logo {
-    background-color: var(--accent-color);
+    background-color: transparent;
 }
 
 .title-logo img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    display: block;
 }
 
 .dark-theme .title-logo img {
     filter: none; /* No filter for dark mode */
-    background-color: #212121; /* Base color for dark mode */
+    background-color: transparent; /* Changed from #212121 */
 }
 
 
@@ -712,7 +714,8 @@ body.search-state .site-subtitle {
     color: var(--accent-color);
     text-decoration: none;
     transition: color 0.2s ease;
-    z-index: 1002;
+    position: relative;
+    z-index: 2;
 }
 
 .image-caption a:hover {
@@ -788,6 +791,7 @@ body.search-state .site-subtitle {
     text-decoration: none;
     border-bottom: var(--border-width) solid transparent;
     transition: border-color var(--transition-speed);
+    z-index: 2; /* Ensure links have higher z-index than animation overlay */
 }
 
 .section-content a:hover {
@@ -894,7 +898,8 @@ body.search-state .site-subtitle {
         rgba(255,255,255,0) 100%);
     background-size: 200% 100%;
     animation: glintEffect 2s ease-in-out forwards;
-    z-index: 1;
+    z-index: 0; /* Change from z-index: 1 to z-index: 0 to keep content clickable */
+    pointer-events: none; /* Make the pseudo-element non-interactive */
 }
 
 /* Hide the glint effect after animation completes */
@@ -985,6 +990,10 @@ body.dark-theme .article-fade-in .references::before {
     padding: 0 4px;
     border-bottom: var(--border-width) solid transparent;
     transition: border-color 0.2s;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+    display: inline;
+    z-index: 2; /* Ensure links have higher z-index than animation overlay */
 }
 
 .wiki-link::before,
@@ -999,16 +1008,25 @@ body.dark-theme .article-fade-in .references::before {
     z-index: -1;
     transition: width 0.3s ease;
     opacity: 0.8;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
 }
 
 .wiki-link:hover,
 .section-content a:hover {
     color: white;
+    border-color: transparent;
 }
 
 .wiki-link:hover::before,
 .section-content a:hover::before {
     width: 100%;
+}
+
+/* Remove any conflicting hover styles */
+.section-content a:hover {
+    border-color: transparent;
+    background-color: transparent;
 }
 
 /* 2. Background highlight for navigation links */
@@ -1045,12 +1063,6 @@ body.dark-theme .article-fade-in .references::before {
 .close-button,
 .option-button {
     transition: all 0.2s ease;
-}
-
-/* Remove any conflicting hover styles */
-.section-content a:hover {
-    border-color: var(--accent-color);
-    background-color: var(--link-highlight);
 }
 
 /* API Key Input Styles */

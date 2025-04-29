@@ -8,11 +8,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Rate limiting middleware
+// Rate limiting middleware - adjusted for better throughput
 const rateLimiter = {
   windowMs: 60 * 1000, // 1 minute
-  maxRequests: 3, // Increased from 2 to 3 requests per minute per IP
-  dailyLimit: 300, // 300 requests per day per IP
+  maxRequests: 5, // Increased from 3 to 5 requests per minute per IP
+  dailyLimit: 400, // Increased from 300 to 400 requests per day per IP
   requestCounts: new Map(),
   dailyCounts: new Map(),
   
@@ -90,7 +90,7 @@ app.use(express.static(path.join(__dirname, '../../')));
 // Apply rate limiting to API endpoints
 app.use('/api/', (req, res, next) => rateLimiter.middleware(req, res, next));
 
-// Proxy endpoint for DeepSeek API with token limits
+// Proxy endpoint for DeepSeek API with token limits - optimized for speed
 app.post('/api/deepseek', async (req, res) => {
   try {
     // Validate and enforce token limits
@@ -99,8 +99,8 @@ app.post('/api/deepseek', async (req, res) => {
       const messageText = req.body.messages.map(msg => msg.content).join(' ');
       const estimatedTokens = Math.ceil(messageText.length / 4); // Rough estimate: 4 chars per token
       
-      // Set reasonable limits
-      const MAX_TOKENS = 4000;
+      // Set more aggressive limits for faster responses
+      const MAX_TOKENS = 2500; // Reduced from 4000
       
       if (estimatedTokens > MAX_TOKENS) {
         return res.status(400).json({
@@ -110,8 +110,8 @@ app.post('/api/deepseek', async (req, res) => {
       }
     }
     
-    // Optimize: Set timeout for the API request
-    const TIMEOUT_MS = 110000; // Increase to 110 seconds timeout
+    // Reduced timeouts for faster responses
+    const TIMEOUT_MS = 55000; // Reduced from 110s to 55s
     
     // Create a promise that rejects after the timeout
     const timeoutPromise = new Promise((_, reject) => {
@@ -124,6 +124,15 @@ app.post('/api/deepseek', async (req, res) => {
       const apiKey = process.env.DEEPSEEK_API_KEY;
       if (!apiKey) {
         throw new Error('DeepSeek API key not configured');
+      }
+      
+      // Modify the request to optimize for speed if not already set
+      if (!req.body.temperature) {
+        req.body.temperature = 0.5; // Lower temperature for more consistent, faster responses
+      }
+      
+      if (!req.body.max_tokens || req.body.max_tokens > 2000) {
+        req.body.max_tokens = 2000; // Limit response length for faster generation
       }
       
       const apiResponse = await axios.post('https://api.deepseek.com/v1/chat/completions', req.body, {

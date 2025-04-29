@@ -15,11 +15,13 @@ export const MAX_SEARCH_HISTORY = 10;
 let currentSearchId = 0;
 
 /**
- * Handles the search action
+ * Handles the search button click
  */
 export async function handleSearch() {
-    const query = searchBar.value.trim();
+    console.log('Handle search called');
     
+    // Get the search query
+    const query = searchBar.value.trim();
     if (!query) {
         console.log('Empty query, search aborted');
         return;
@@ -27,21 +29,29 @@ export async function handleSearch() {
     
     // Check if rateLimiter exists and check rate limit
     if (window.AIPediaUtils && window.AIPediaUtils.rateLimiter && typeof window.AIPediaUtils.rateLimiter.checkLimit === 'function') {
-    if (!window.AIPediaUtils.rateLimiter.checkLimit()) {
-        const timeRemaining = window.AIPediaUtils.rateLimiter.getTimeRemaining();
-        alert(`Too many searches. Please wait ${timeRemaining} seconds before trying again.`);
-        console.log(`Rate limit exceeded. Need to wait ${timeRemaining} seconds.`);
-        return;
+        if (!window.AIPediaUtils.rateLimiter.checkLimit()) {
+            const timeRemaining = window.AIPediaUtils.rateLimiter.getTimeRemaining();
+            alert(`Too many searches. Please wait ${timeRemaining} seconds before trying again.`);
+            console.log(`Rate limit exceeded. Need to wait ${timeRemaining} seconds.`);
+            return;
         }
     } else {
         console.warn('Rate limiter not available, skipping rate limit check');
     }
     
-    // Get selected language and writing style
-    const language = languageSelect.value;
-    const writingStyle = writingStyleSelect.value;
+    // Get the selected language and writing style
+    const language = languageSelect ? languageSelect.value : 'en';
+    const writingStyle = writingStyleSelect ? writingStyleSelect.value : 'normal';
     
-    // Perform the search
+    // Clear previous article context (only for manual searches, not wiki link clicks)
+    // This ensures that related searches only work when clicking links within articles
+    window.currentArticleData = null;
+    console.log('Cleared previous article context for new manual search');
+    
+    // Set search state
+    document.body.classList.add('search-state');
+    
+    // Call performSearch function
     await performSearch(query, language, writingStyle);
 }
 
@@ -170,11 +180,11 @@ export async function performSearch(query, language, writingStyle) {
         addProgressStep('Prompt generated', promptTime);
         
         // Check if we have a cached article
-        const cachedArticle = window.AIPediaUtils.getCachedArticle(query);
+        const cachedArticle = window.AIPediaUtils.getCachedArticle(query, writingStyle);
         let articleData;
         
         if (cachedArticle) {
-            console.log('Using cached article for:', query);
+            console.log('Using cached article for:', query, 'with style:', writingStyle);
             articleData = cachedArticle;
             
             // Update metrics to indicate it was from cache
@@ -259,6 +269,9 @@ export async function performSearch(query, language, writingStyle) {
             estimatedCost: window.estimatedCost || '0.0000',
             fromCache: false
         };
+        
+        // Store writing style in article data for cache differentiation
+        articleData.writingStyle = writingStyle;
         
         // Store current article data
         window.currentArticleData = articleData;
@@ -582,11 +595,11 @@ export function updateHistoryList(list) {
  * @returns {number} - The estimated wait time in seconds
  */
 export function estimateWaitTime(query) {
-    // Base time of 30 seconds (doubled from 15)
-    let baseTime = 30;
+    // Base time of 15 seconds (reduced from 30)
+    let baseTime = 15;
     
-    // Add 2 seconds for every 10 characters in the query (doubled from 1)
-    let queryTime = Math.floor(query.length / 10) * 2;
+    // Add 1 second for every 10 characters in the query (reduced from 2)
+    let queryTime = Math.floor(query.length / 10);
     
     // Adjust based on network conditions
     // Use navigator.connection if available to adjust for network speed
@@ -596,19 +609,19 @@ export function estimateWaitTime(query) {
         if (connection.effectiveType === '4g') {
             networkMultiplier = 1;
         } else if (connection.effectiveType === '3g') {
-            networkMultiplier = 1.5;
+            networkMultiplier = 1.25; // Reduced from 1.5
         } else if (connection.effectiveType === '2g') {
-            networkMultiplier = 2;
+            networkMultiplier = 1.5; // Reduced from 2
         } else if (connection.effectiveType === 'slow-2g') {
-            networkMultiplier = 2.5;
+            networkMultiplier = 1.75; // Reduced from 2.5
         }
     }
     
     // Calculate total time with network adjustment
     const totalTime = (baseTime + queryTime) * networkMultiplier;
     
-    // Return the estimated time, ensuring it's at least 20 seconds (doubled from 10)
-    return Math.max(20, Math.round(totalTime));
+    // Return the estimated time, ensuring it's at least 10 seconds (reduced from 20)
+    return Math.max(10, Math.round(totalTime));
 }
 
 /**

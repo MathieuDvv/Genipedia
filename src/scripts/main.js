@@ -221,9 +221,10 @@ function updateSearchBarBetaIcon() {
     // Check if any beta feature is enabled
     const imageSuggestionEnabled = document.getElementById('image-suggestion-toggle')?.checked || false;
     const elevenLabsEnabled = document.getElementById('elevenlabs-toggle')?.checked || false;
+    const articleCachingEnabled = document.getElementById('article-caching-toggle')?.checked || false;
     
     // If any beta feature is enabled, add the sparkle icon
-    if (imageSuggestionEnabled || elevenLabsEnabled) {
+    if (imageSuggestionEnabled || elevenLabsEnabled || articleCachingEnabled) {
         // Remove existing icon if any
         const existingIcon = searchBarContainer.querySelector('.search-bar-beta-icon');
         if (existingIcon) {
@@ -248,12 +249,12 @@ function updateSearchBarBetaIcon() {
                     stroke: 'currentColor',
                     fill: 'none',
                     strokeLinecap: 'round',
-                    strokeLinejoin: 'round'
+                    strokeLinejoin: 'round',
                 }
-            }, document.querySelectorAll('.search-bar-beta-icon'));
+            });
         }
     } else {
-        // Remove the sparkle icon if no beta feature is enabled
+        // Remove icon if no beta features are enabled
         const existingIcon = searchBarContainer.querySelector('.search-bar-beta-icon');
         if (existingIcon) {
             existingIcon.remove();
@@ -318,441 +319,185 @@ function initTopDonationBanner() {
  * Initializes the application
  */
 function init() {
+    console.log('Initializing AIPedia...');
+    
+    // Set up the dynamic search placeholder
+    setupDynamicSearchPlaceholder();
+    
     // Load user preferences
     loadUserPreferences();
     
-    // Load search history
-    loadSearchHistory();
-    
-    // Load saved locale
+    // Initialize language
     loadSavedLocale();
     
-    // Update UI with current locale
-    updateUIWithLocale();
+    // Setup dynamic icon for the customize button
+    function updateIcon() {
+        const customizeButton = document.getElementById('customize-button');
+        if (!customizeButton) return;
+        
+        // Add the correct icon based on the theme
+        const isDarkTheme = document.body.classList.contains('dark-theme');
+        const icon = customizeButton.querySelector('[data-lucide]');
+        
+        if (icon) {
+            icon.setAttribute('data-lucide', 'settings');
+        }
+    }
     
-    // Setup dynamic search placeholder
-    setupDynamicSearchPlaceholder();
-    
-    // Enable center mode by default
-    document.body.classList.add('center-mode');
+    // Update the icon initially
+    updateIcon();
     
     // Add event listeners
-    searchButton.addEventListener('click', handleSearch);
-    searchBar.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            handleSearch();
+    searchButton.addEventListener('click', function() {
+        const query = searchBar.value.trim();
+        if (query) {
+            handleSearch(query);
         }
     });
     
-    // Language select change
-    if (languageSelect) {
-        languageSelect.addEventListener('change', () => {
-            setLocale(languageSelect.value);
-            updateSubtitleLanguage(languageSelect.value);
-        });
-        // Initialize subtitle with current language
-        updateSubtitleLanguage(languageSelect.value || 'en');
-    }
-    
-    // Setup age-targeted writing style toggle
-    setupAgeTargetedWritingToggle();
-    
-    // Check for search parameters in URL
-    loadFromURLParameters();
-    
-    // Back to top button
-    backToTopButton.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
+    searchBar.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            const query = searchBar.value.trim();
+            if (query) {
+                handleSearch(query);
+            }
+        }
     });
     
-    // Show/hide back to top button on scroll
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
+    // Back to top functionality
+    backToTopButton.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    
+    // Show/hide back to top button based on scroll position
+    window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 300) {
             backToTopButton.classList.add('visible');
         } else {
             backToTopButton.classList.remove('visible');
         }
     });
     
+    // Handle Ko-fi button click
+    kofiButton.addEventListener('click', function() {
+        window.open('https://ko-fi.com/mathieudvv', '_blank');
+    });
+    
+    // Handle Twitter button click
+    document.getElementById('twitter-button').addEventListener('click', function() {
+        window.open('https://twitter.com/mathieudv', '_blank');
+    });
+    
+    // Handle Bug Report button click
+    bugReportButton.addEventListener('click', function() {
+        window.open('https://github.com/mathieudv/genipedia/issues', '_blank');
+    });
+    
+    // Site title click resets the application
+    siteTitle.addEventListener('click', resetApplicationState);
+    
     // Customization modal
     customizeButton.addEventListener('click', openCustomizationModal);
     closeModalButton.addEventListener('click', closeCustomizationModal);
     
-    // Ko-Fi button
-    kofiButton.addEventListener('click', () => {
-        window.open('https://ko-fi.com/mathieudvv', '_blank');
-    });
-    
-    // Twitter button
-    document.getElementById('twitter-button').addEventListener('click', () => {
-        window.open('https://twitter.com/genipedia', '_blank');
-    });
-    
-    // Bug report button
-    bugReportButton.addEventListener('click', () => {
-        const bugReportPopup = document.getElementById('bug-report-popup');
-        bugReportPopup.classList.add('visible');
-    });
-    
-    // Close bug report popup
-    document.getElementById('close-bug-popup').addEventListener('click', () => {
-        const bugReportPopup = document.getElementById('bug-report-popup');
-        bugReportPopup.classList.remove('visible');
-    });
-    
-    // Close bug report popup when clicking outside
-    document.getElementById('bug-report-popup').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('bug-report-popup')) {
-            document.getElementById('bug-report-popup').classList.remove('visible');
-        }
-    });
-    
-    // Licenses button
-    document.getElementById('licenses-button').addEventListener('click', () => {
-        const licensesPopup = document.getElementById('licenses-popup');
-        licensesPopup.classList.add('visible');
-    });
-    
-    // Close licenses popup
-    document.getElementById('close-licenses-popup').addEventListener('click', () => {
-        const licensesPopup = document.getElementById('licenses-popup');
-        licensesPopup.classList.remove('visible');
-    });
-    
-    // Close licenses popup when clicking outside
-    document.getElementById('licenses-popup').addEventListener('click', (e) => {
-        if (e.target === document.getElementById('licenses-popup')) {
-            document.getElementById('licenses-popup').classList.remove('visible');
-        }
-    });
-    
-    // Rotating icon functionality
-    const icons = ['globe', 'earth', 'cat', 'car', 'cpu', 'graduation-cap', 'tv', 'brain', 'sailboat', 'leaf'];
-    let currentIconIndex = 0;
-    const rotatingIcon = document.querySelector('.rotating-icon');
-    let isAnimating = false;
-    
-    function updateIcon() {
-        if (!document.body.classList.contains('center-mode') || 
-            document.body.classList.contains('search-state') ||
-            isAnimating ||
-            !rotatingIcon) {
-            return;
-        }
-
-        isAnimating = true;
-        
-        // Start the flip animation
-        rotatingIcon.style.animation = 'coinFlip 1s ease-in-out';
-        
-        // Change icon when the coin is flipped (halfway through animation)
-        setTimeout(() => {
-            currentIconIndex = (currentIconIndex + 1) % icons.length;
-            rotatingIcon.setAttribute('data-lucide', icons[currentIconIndex]);
-            lucide.createIcons({
-                attrs: {
-                    class: ['lucide', 'rotating-icon'],
-                    stroke: 'currentColor'
-                }
-            }, [rotatingIcon]);
-        }, 500);
-
-        // Reset animation state after completion
-        setTimeout(() => {
-            rotatingIcon.style.animation = '';
-            isAnimating = false;
-        }, 1000);
-    }
-    
-    // Initial icon setup
-    if (rotatingIcon) {
-        rotatingIcon.setAttribute('data-lucide', icons[0]);
-        lucide.createIcons({
-            attrs: {
-                class: ['lucide', 'rotating-icon'],
-                stroke: 'currentColor'
-            }
-        }, [rotatingIcon]);
-    }
-    
-    // Update icon every 3 seconds
-    setInterval(updateIcon, 3000);
-    
-    // Theme toggle
-    themeButtons.light.addEventListener('click', () => {
-        setTheme('light');
-    });
-    
-    themeButtons.dark.addEventListener('click', () => {
-        setTheme('dark');
-    });
-    
-    // Color options
-    Object.keys(colorButtons).forEach(color => {
-        colorButtons[color].addEventListener('click', () => {
-            setAccentColor(color);
-        });
-    });
-    
-    // Font options
-    Object.keys(fontToggle).forEach(font => {
-        fontToggle[font].addEventListener('click', () => {
-            setFontFamily(font);
-        });
-    });
-    
     // Font size slider
-    if (fontSizeSlider) {
-        fontSizeSlider.addEventListener('input', () => {
-            const value = fontSizeSlider.value;
-            let multiplier;
-            
-            switch (parseInt(value)) {
-                case 1:
-                    multiplier = 0.5;
-                    break;
-                case 2:
-                    multiplier = 0.75;
-                    break;
-                case 3:
-                    multiplier = 1;
-                    break;
-                case 4:
-                    multiplier = 2;
-                    break;
-                default:
-                    multiplier = 0.75;
-            }
-            
-            setFontSize(multiplier);
-        });
-        
-        // Set initial font size based on slider value
-        const initialFontSizeValue = fontSizeSlider.value;
-        let initialMultiplier;
-        
-        switch (parseInt(initialFontSizeValue)) {
-            case 1:
-                initialMultiplier = 0.5;
-                break;
-            case 2:
-                initialMultiplier = 0.75;
-                break;
-            case 3:
-                initialMultiplier = 1;
-                break;
-            case 4:
-                initialMultiplier = 2;
-                break;
-            default:
-                initialMultiplier = 0.75;
-        }
-        
-        setFontSize(initialMultiplier);
-    } else {
-        // Default to x1 font size if slider doesn't exist
-        setFontSize(1);
-    }
+    fontSizeSlider.addEventListener('input', function() {
+        setFontSize(this.value);
+    });
     
-    // Logo click resets the app
-    siteTitle.addEventListener('click', resetApplicationState);
-    
-    // Beta features
-    // Image suggestion toggle
-    const imageSuggestionToggle = document.getElementById('image-suggestion-toggle');
-    if (imageSuggestionToggle) {
-        // Load saved state
-        const savedState = localStorage.getItem('image_suggestion_enabled');
-        if (savedState === 'true') {
-            imageSuggestionToggle.checked = true;
-            // Show version selector if enabled
-            const versionSelector = document.getElementById('image-suggestion-version-container');
-            if (versionSelector) versionSelector.style.display = 'block';
-        } else {
-            // Hide version selector if disabled
-            const versionSelector = document.getElementById('image-suggestion-version-container');
-            if (versionSelector) versionSelector.style.display = 'none';
-        }
-        
-        // Save state on change
-        imageSuggestionToggle.addEventListener('change', () => {
-            localStorage.setItem('image_suggestion_enabled', imageSuggestionToggle.checked);
-            
-            // Show/hide version selector based on toggle state
-            const versionSelector = document.getElementById('image-suggestion-version-container');
-            if (versionSelector) {
-                versionSelector.style.display = imageSuggestionToggle.checked ? 'block' : 'none';
-            }
-            
-            updateSearchBarBetaIcon();
+    // Theme buttons - Fix the forEach error by checking if buttons exist
+    if (themeButtons.light) {
+        themeButtons.light.addEventListener('click', function() {
+            setTheme('light');
         });
     }
     
-    // Load and save image suggestion version
-    const imageSuggestionVersionSelect = document.getElementById('image-suggestion-version-select');
-    if (imageSuggestionVersionSelect) {
-        // Load saved version
-        const savedVersion = localStorage.getItem('image_suggestion_version') || 'v1';
-        imageSuggestionVersionSelect.value = savedVersion;
-        
-        // Save version on change
-        imageSuggestionVersionSelect.addEventListener('change', () => {
-            localStorage.setItem('image_suggestion_version', imageSuggestionVersionSelect.value);
+    if (themeButtons.dark) {
+        themeButtons.dark.addEventListener('click', function() {
+            setTheme('dark');
         });
     }
     
-    // ElevenLabs toggle
-    const elevenLabsToggle = document.getElementById('elevenlabs-toggle');
-    const elevenLabsApiContainer = document.querySelector('.elevenlabs-api-container');
-    const elevenLabsApiKeyInput = document.getElementById('elevenlabs-api-key');
-    const saveElevenLabsApiKeyButton = document.getElementById('save-elevenlabs-api-key');
-    const elevenLabsApiKeyStatus = document.getElementById('elevenlabs-api-key-status');
-    const ttsApiSelect = document.getElementById('tts-api-select');
-    const elevenLabsKeyContainer = document.getElementById('elevenlabs-key-container');
-    
-    if (elevenLabsToggle && elevenLabsApiContainer) {
-        // Load saved state
-        const savedState = localStorage.getItem('elevenlabs_enabled');
-        if (savedState === 'true') {
-            elevenLabsToggle.checked = true;
-            elevenLabsApiContainer.style.display = 'block';
-        }
-        
-        // Show/hide API key input on toggle
-        elevenLabsToggle.addEventListener('change', () => {
-            localStorage.setItem('elevenlabs_enabled', elevenLabsToggle.checked);
-            elevenLabsApiContainer.style.display = elevenLabsToggle.checked ? 'block' : 'none';
-            updateSearchBarBetaIcon();
-        });
-        
-        // Handle TTS API selection
-        if (ttsApiSelect && elevenLabsKeyContainer) {
-            // Load saved API selection
-            const savedApiSelection = window.AIPediaUtils.getSelectedTTSApi();
-            ttsApiSelect.value = savedApiSelection;
-            
-            // Show/hide ElevenLabs key container based on selection
-            elevenLabsKeyContainer.style.display = savedApiSelection === 'elevenlabs' ? 'block' : 'none';
-            
-            // Handle API selection change
-            ttsApiSelect.addEventListener('change', () => {
-                const apiSelection = ttsApiSelect.value;
-                window.AIPediaUtils.saveSelectedTTSApi(apiSelection);
-                elevenLabsKeyContainer.style.display = apiSelection === 'elevenlabs' ? 'block' : 'none';
+    // Color buttons - Use Object.keys() to iterate through the object
+    Object.keys(colorButtons).forEach(color => {
+        const button = colorButtons[color];
+        if (button && button.addEventListener) {
+            button.addEventListener('click', function() {
+                setAccentColor(color);
             });
         }
-        
-        // Load saved API key
-        if (elevenLabsApiKeyInput) {
-            try {
-                const savedApiKey = localStorage.getItem('elevenlabs_api_key');
-                if (savedApiKey) {
-                    elevenLabsApiKeyInput.value = savedApiKey;
-                    elevenLabsApiKeyStatus.textContent = 'API key is set';
-                    elevenLabsApiKeyStatus.className = 'api-key-status success';
-                }
-            } catch (error) {
-                console.error('Error loading ElevenLabs API key:', error);
-            }
-        }
-        
-        // Save API key
-        if (saveElevenLabsApiKeyButton && elevenLabsApiKeyInput) {
-            saveElevenLabsApiKeyButton.addEventListener('click', async () => {
-                const apiKey = elevenLabsApiKeyInput.value.trim();
-                
-                if (!apiKey) {
-                    elevenLabsApiKeyStatus.textContent = 'Please enter a valid API key';
-                    elevenLabsApiKeyStatus.className = 'api-key-status error';
-                    return;
-                }
-                
-                // Show loading state
-                saveElevenLabsApiKeyButton.disabled = true;
-                saveElevenLabsApiKeyButton.textContent = 'Saving...';
-                
-                // Validate API key
-                try {
-                    const isValid = await window.AIPediaUtils.validateElevenLabsApiKey(apiKey);
-                    
-                    if (isValid) {
-                        // Save API key
-                        window.AIPediaUtils.saveElevenLabsApiKey(apiKey);
-                        
-                        elevenLabsApiKeyStatus.textContent = 'API key saved successfully';
-                        elevenLabsApiKeyStatus.className = 'api-key-status success';
-                    } else {
-                        elevenLabsApiKeyStatus.textContent = 'Invalid API key';
-                        elevenLabsApiKeyStatus.className = 'api-key-status error';
-                    }
-                } catch (error) {
-                    console.error('Error validating ElevenLabs API key:', error);
-                    elevenLabsApiKeyStatus.textContent = 'Error validating API key';
-                    elevenLabsApiKeyStatus.className = 'api-key-status error';
-                } finally {
-                    // Reset button state
-                    saveElevenLabsApiKeyButton.disabled = false;
-                    saveElevenLabsApiKeyButton.textContent = 'Save';
-                }
+    });
+    
+    // Font toggle - Use Object.keys() to iterate through the object
+    Object.keys(fontToggle).forEach(font => {
+        const button = fontToggle[font];
+        if (button && button.addEventListener) {
+            button.addEventListener('click', function() {
+                setFontFamily(font);
             });
         }
-    }
+    });
     
-    // Initialize Lucide icons
-    if (window.lucide) {
-        window.lucide.createIcons();
-    }
+    // Load search history
+    loadSearchHistory();
     
-    // Update search bar with beta icon if needed
-    updateSearchBarBetaIcon();
-
-    // Initialize top donation banner
-    initTopDonationBanner();
-
-    // Age-targeted writing toggle
-    const ageTargetedToggle = document.getElementById('age-targeted-toggle');
-    if (ageTargetedToggle) {
-        // Load saved state
-        const savedState = localStorage.getItem('ageTargetedWriting');
-        if (savedState === 'true') {
-            ageTargetedToggle.checked = true;
-            updateWritingStyleOptions(true);
+    // Initialize history toggle
+    initHistoryToggle();
+    
+    // Initialize language selector
+    languageSelect.addEventListener('change', function() {
+        setLocale(this.value);
+        updateSubtitleLanguage(this.value);
+    });
+    
+    // Handle clicking outside the modal to close it
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('customization-modal');
+        if (event.target === modal) {
+            closeCustomizationModal();
         }
-        
-        // Handle toggle change
-        ageTargetedToggle.addEventListener('change', () => {
-            localStorage.setItem('ageTargetedWriting', ageTargetedToggle.checked);
-            updateWritingStyleOptions(ageTargetedToggle.checked);
-        });
+    });
+    
+    // Escape key to close modal
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeCustomizationModal();
+        }
+    });
+    
+    // Setup age-targeted writing toggle in preferences
+    setupAgeTargetedWritingToggle();
+    
+    // Create Lucide icons
+    lucide.createIcons({
+        attrs: {
+            class: ['lucide'],
+            strokeWidth: '2',
+            stroke: 'currentColor',
+            fill: 'none',
+            strokeLinecap: 'round',
+            strokeLinejoin: 'round',
+        }
+    });
+    
+    // Make sure logo is visible
+    const logoImg = document.querySelector('.title-logo');
+    if (logoImg) {
+        logoImg.style.display = 'block';
+        logoImg.style.maxWidth = '100%';
+        console.log("Ensuring logo is visible");
     }
     
-    // Article caching toggle
-    const articleCachingToggle = document.getElementById('article-caching-toggle');
-    if (articleCachingToggle) {
-        // Load saved state
-        const savedState = localStorage.getItem('article_caching_enabled');
-        if (savedState === 'true') {
-            articleCachingToggle.checked = true;
-            window.AIPediaUtils.setCachingEnabled(true);
-        } else {
-            window.AIPediaUtils.setCachingEnabled(false);
-        }
-        
-        // Handle toggle change
-        articleCachingToggle.addEventListener('change', () => {
-            localStorage.setItem('article_caching_enabled', articleCachingToggle.checked);
-            window.AIPediaUtils.setCachingEnabled(articleCachingToggle.checked);
-            
-            // Clear cache if disabled
-            if (!articleCachingToggle.checked) {
-                window.AIPediaUtils.clearArticleCache();
-                window.AIPediaUtils.clearImageCache();
-            }
-        });
-    }
+    // Set up mobile UI adjustments
+    setupMobileUIAdjustments();
+    
+    // Try to load article from URL parameters if any
+    loadFromURLParameters();
+    
+    // Setup Beta Features toggle handlers
+    setupBetaFeatureToggles();
+    
+    console.log('AIPedia initialized successfully');
 }
 
 // Function to update the subtitle based on the selected language
@@ -870,5 +615,137 @@ function setupAgeTargetedWritingToggle() {
     }
 }
 
-// Initialize the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', init); 
+/**
+ * Sets up mobile UI adjustments
+ */
+function setupMobileUIAdjustments() {
+    // Placeholder function - implement mobile-specific adjustments if needed
+    console.log("Mobile UI adjustments setup");
+}
+
+/**
+ * Sets up beta feature toggle handlers
+ */
+function setupBetaFeatureToggles() {
+    // Image suggestion toggle
+    const imageSuggestionToggle = document.getElementById('image-suggestion-toggle');
+    if (imageSuggestionToggle) {
+        // Initialize from saved preference (default to false if not set)
+        const savedImageSuggestionPreference = localStorage.getItem('imageSuggestionEnabled');
+        const imageSuggestionEnabled = savedImageSuggestionPreference === 'true';
+        
+        // Set initial state
+        imageSuggestionToggle.checked = imageSuggestionEnabled;
+        
+        // Get version container
+        const versionContainer = document.getElementById('image-suggestion-version-container');
+        
+        // Set initial visibility based on toggle state
+        if (versionContainer) {
+            versionContainer.style.display = imageSuggestionEnabled ? 'block' : 'none';
+        }
+        
+        // Handle toggle changes
+        imageSuggestionToggle.addEventListener('change', () => {
+            const enabled = imageSuggestionToggle.checked;
+            localStorage.setItem('imageSuggestionEnabled', enabled);
+            
+            // Show/hide version container
+            if (versionContainer) {
+                versionContainer.style.display = enabled ? 'block' : 'none';
+            }
+            
+            // Update the beta icon in search bar
+            updateSearchBarBetaIcon();
+        });
+    }
+    
+    // ElevenLabs toggle
+    const elevenlabsToggle = document.getElementById('elevenlabs-toggle');
+    if (elevenlabsToggle) {
+        // Initialize from saved preference (default to false if not set)
+        const savedElevenlabsPreference = localStorage.getItem('elevenlabsEnabled');
+        // Force enable the feature but hide the toggle
+        const elevenlabsEnabled = false;
+        
+        // Set initial state but disable the toggle element
+        elevenlabsToggle.checked = elevenlabsEnabled;
+        elevenlabsToggle.disabled = true;
+        
+        // Get API container
+        const apiContainer = document.querySelector('.elevenlabs-api-container');
+        
+        // Set initial visibility based on toggle state
+        if (apiContainer) {
+            apiContainer.style.display = elevenlabsEnabled ? 'block' : 'none';
+        }
+        
+        // Save the enabled state to localStorage
+        localStorage.setItem('elevenlabsEnabled', elevenlabsEnabled);
+        
+        // Hide the toggle's parent element to remove it from the UI
+        const toggleContainer = elevenlabsToggle.closest('.toggle-container');
+        if (toggleContainer) {
+            toggleContainer.style.display = 'none';
+        }
+    }
+    
+    // Article caching toggle
+    const articleCachingToggle = document.getElementById('article-caching-toggle');
+    if (articleCachingToggle) {
+        // Initialize from saved preference (default to true if not set)
+        const savedCachingPreference = localStorage.getItem('articleCachingEnabled');
+        const cachingEnabled = savedCachingPreference === null ? true : (savedCachingPreference === 'true');
+        
+        // Set initial state
+        articleCachingToggle.checked = cachingEnabled;
+        window.AIPediaUtils.setCachingEnabled(cachingEnabled);
+        
+        // Handle toggle changes
+        articleCachingToggle.addEventListener('change', () => {
+            const enabled = articleCachingToggle.checked;
+            window.AIPediaUtils.setCachingEnabled(enabled);
+            localStorage.setItem('articleCachingEnabled', enabled);
+            
+            // Clear caches if disabled
+            if (!enabled) {
+                window.AIPediaUtils.clearArticleCache();
+                window.AIPediaUtils.clearImageCache();
+                console.log('Caches cleared due to disabling caching feature');
+            }
+            
+            // Update the beta icon in search bar
+            updateSearchBarBetaIcon();
+        });
+    }
+    
+    // Licenses button
+    const licensesButton = document.getElementById('licenses-button');
+    const licensesPopup = document.getElementById('licenses-popup');
+    const closeLicensesButton = document.getElementById('close-licenses-popup');
+    
+    if (licensesButton && licensesPopup && closeLicensesButton) {
+        licensesButton.addEventListener('click', () => {
+            licensesPopup.classList.add('visible');
+        });
+        
+        closeLicensesButton.addEventListener('click', () => {
+            licensesPopup.classList.remove('visible');
+        });
+    }
+    
+    // Update beta icon based on initial states
+    updateSearchBarBetaIcon();
+    
+    console.log("Beta feature toggles setup");
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+    
+    // Initialize Sticky Audio Player
+    if (window.initStickyAudioPlayer) {
+        window.initStickyAudioPlayer();
+    }
+}); 

@@ -140,9 +140,9 @@ export async function generateArticle(query, language, writingStyle) {
         window.estimatedCost = estimateTokenCost(window.tokenCount);
         console.log(`Estimated tokens: ${window.tokenCount}, Estimated cost: ${window.estimatedCost}`);
         
-        // Optimize: Use AbortController for timeout
+        // Use AbortController for timeout - reduced from 120 to 60 seconds
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // Increase to 120 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 60000);
         
         try {
             // Make API request to DeepSeek API
@@ -157,15 +157,15 @@ export async function generateArticle(query, language, writingStyle) {
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are a helpful assistant that generates informative articles.'
+                            content: 'You are a helpful assistant that generates concise, informative articles. Always output in JSON format only.'
                         },
                         {
                             role: 'user',
                             content: prompt
                         }
                     ],
-                    temperature: 0.7,
-                    max_tokens: 4000
+                    temperature: 0.5, // Lowered from 0.7 for more consistent, faster responses
+                    max_tokens: 2000  // Reduced from 4000 for faster generation
                 }),
                 signal: controller.signal
             });
@@ -215,88 +215,79 @@ export function generatePrompt(query, language, style) {
     console.log('Generating prompt for:', { query, language, style });
     let languageName = getLanguageName(language);
     let styleDescription = '';
+    let lengthGuideline = 'Aim for approximately 500-800 words total.';
+    let sectionCount = '3-4';
     
     // Get context from previous article if available
     const previousContext = window.currentArticleData ? 
-        `This search was initiated from the article about "${window.currentArticleData.title}". You may use this as context if relevant.` : 
+        `This search was initiated from the article about "${window.currentArticleData.title}". IMPORTANT: Your article must focus specifically on "${query}" as it relates to "${window.currentArticleData.title}" - do not create a general article about "${query}" but instead focus exclusively on how "${query}" relates to or exists within the context of "${window.currentArticleData.title}".` : 
         '';
     
+    // More differentiated style descriptions with length adjustments
     switch (style) {
         case 'formal':
-            styleDescription = 'Write in a formal style suitable for academic or professional presentations. Use proper terminology, avoid contractions, and maintain a professional tone throughout.';
+            styleDescription = 'Write in a formal academic style with proper terminology and structured arguments. Use a professional tone throughout.';
+            lengthGuideline = 'Aim for approximately 600-900 words total.';
             break;
         case 'accessible':
-            styleDescription = 'Write in an accessible style that can be easily understood by kids and teenagers. Use simpler vocabulary, shorter sentences, and clear explanations of complex concepts.';
+            styleDescription = 'Write in a highly accessible style with simple vocabulary and short sentences. Avoid jargon completely and explain all concepts in a way that anyone can understand.';
+            lengthGuideline = 'Aim for approximately 400-700 words total.';
             break;
         case 'explanatory':
-            styleDescription = 'Write in a detailed explanatory style that goes deeper into the subject. Include more background information, context, and thorough explanations of concepts.';
+            styleDescription = 'Write in a comprehensive explanatory style with detailed information, examples, and thorough exploration of the topic. Include more nuanced aspects of the subject and additional context where helpful.';
+            lengthGuideline = 'Aim for approximately 900-1200 words total.';
+            sectionCount = '4-6';
             break;
         case 'concise':
-            styleDescription = 'Write in a concise style that delivers the essential information efficiently. Keep the article shorter, focus on key points, and minimize unnecessary details.';
+            styleDescription = 'Write in a very concise style focusing only on essential information. Be direct and brief without unnecessary elaboration.';
+            lengthGuideline = 'Aim for approximately 300-500 words total.';
+            sectionCount = '2-3';
             break;
         case 'age-0-10':
-            styleDescription = 'Write in a style suitable for young children aged 0-10. Use very simple vocabulary, short sentences, and explain concepts in the most basic terms. Avoid complex terminology completely. Use analogies and examples that children can relate to. Keep paragraphs very short (2-3 sentences maximum). Use a friendly, encouraging tone.';
+            styleDescription = 'Write for young children (ages 0-10) using very simple language, short sentences, and basic concepts. Explain everything as if to a child with no prior knowledge of the subject.';
+            lengthGuideline = 'Aim for approximately 300-500 words total.';
+            sectionCount = '2-3';
             break;
         case 'age-11-16':
-            styleDescription = 'Write in a style suitable for pre-teens and teenagers aged 11-16. Use moderately simple vocabulary, clear explanations, and relatable examples. Introduce some technical terms but always explain them. Keep paragraphs relatively short. Use an engaging, slightly conversational tone that respects their intelligence but doesn\'t assume advanced knowledge.';
+            styleDescription = 'Write for teenagers (ages 11-16) with clear explanations that bridge basic and more advanced concepts. Use age-appropriate vocabulary and relatable examples.';
+            lengthGuideline = 'Aim for approximately 500-700 words total.';
             break;
         case 'age-17-25':
-            styleDescription = 'Write in a style suitable for young adults aged 17-25. Use a mix of casual and formal language, with appropriate technical terminology explained when needed. Include relevant cultural references and contemporary examples. Balance depth with accessibility. Use a conversational yet informative tone that respects their intelligence and growing expertise.';
+            styleDescription = 'Write for young adults (ages 17-25) with balanced depth and accessibility. Include some technical terms but explain them clearly.';
+            lengthGuideline = 'Aim for approximately 600-900 words total.';
             break;
         case 'age-25-plus':
-            styleDescription = 'Write in a style suitable for adults aged 25 and older. Use sophisticated vocabulary and proper terminology with explanations where necessary. Provide nuanced analysis and deeper context. Include historical perspectives and connections to broader themes. Use a mature, respectful tone that assumes some life experience and background knowledge.';
+            styleDescription = 'Write for adults (ages 25+) with proper terminology, context, and nuanced discussion. Assume the reader has general knowledge but not necessarily expertise in this subject.';
+            lengthGuideline = 'Aim for approximately 700-1000 words total.';
             break;
-        default: // normal
-            styleDescription = 'Write in a balanced, informative style suitable for a general audience, similar to a classic wiki page.';
+        default:
+            styleDescription = 'Write in a balanced, informative style for a general audience.';
     }
     
-    return `
-    Create a comprehensive Wikipedia-style article about "${query}" in ${languageName}.
-    
-    ${styleDescription}
-    
-    ${previousContext}
+    return `Create a Wikipedia-style article about "${query}" in ${languageName}. ${styleDescription} ${previousContext}
     
     Format the article with the following structure:
+    1. Title
+    2. A brief summary (1-2 sentences)
+    3. ${sectionCount} sections with headings
+    4. A brief references section
     
-    1. A brief summary of the topic (2-3 sentences) - DO NOT use any markdown formatting in the summary, only plain text
-    2. Multiple sections with headings and subheadings
-    3. Include relevant facts, history, and context
-    4. A references section at the end
+    Use markdown: # for title, ## for headings, **bold** for key terms, and [text](link) for wiki links.
     
-    Use Markdown formatting:
-    - Use # for the main title (DO NOT include any markdown formatting in the title itself, only plain text)
-    - Use ## for section headings (DO NOT include any markdown formatting in the headings, only plain text)
-    - Use ### for subheadings (DO NOT include any markdown formatting in the subheadings, only plain text)
-    - Use **bold** for important terms, concepts, and key people - these will be made clickable
-    - Use *italic* for terms or titles
-    - Use [text](link) for internal wiki-style links to related concepts
+    Make sure the article is factual, informative, and well-organized. ${lengthGuideline}
     
-    IMPORTANT: Make liberal use of both **bold text** and [wiki links] to create a richly interconnected article. 
-    Every important concept, person, place, or term should be either in bold or a wiki link.
-    
-    IMPORTANT: DO NOT use any markdown formatting in the title, summary, section headings, or subheadings. These should be plain text only.
-    
-    The article should be informative, accurate, and well-structured. Aim for approximately 1000-1500 words.
-    
-    IMPORTANT: Format your response as a JSON object with the following structure:
+    Format your response as JSON:
     {
-      "title": "The main title (plain text only, no markdown)",
-      "summary": "A brief summary (plain text only, no markdown)",
+      "title": "Main title (plain text)",
+      "summary": "Brief summary (plain text)",
       "sections": [
         {
-          "heading": "Section heading (plain text only, no markdown)",
+          "heading": "Section heading (plain text)",
           "content": "Section content with **formatting** and [links](concepts)"
-        },
-        ...
+        }
       ],
-      "references": [
-        "Reference 1",
-        "Reference 2",
-        ...
-      ]
-    }
-    `;
+      "references": ["Reference 1", "Reference 2"]
+    }`;
 }
 
 /**
@@ -392,6 +383,12 @@ export function parseArticleResponse(responseText) {
  */
 export function renderArticle(articleData) {
     console.log('Rendering article:', articleData.title);
+    
+    // Store article data globally for context in related searches
+    window.currentArticleData = {
+        title: articleData.title,
+        summary: articleData.summary
+    };
     
     // Clear the article container
     articleContainer.innerHTML = '';
@@ -698,9 +695,20 @@ export function renderArticle(articleData) {
         tocLink.textContent = stripMarkdown(section.heading);
         tocLink.addEventListener('click', (e) => {
             e.preventDefault();
-            document.querySelector(`.section[data-index="${index}"]`).scrollIntoView({
-                behavior: 'smooth'
-            });
+            const sectionElement = document.querySelector(`.section[data-index="${index}"]`);
+            if (sectionElement) {
+                // Get the element's position
+                const rect = sectionElement.getBoundingClientRect();
+                // Calculate offset to account for fixed header (120px height instead of 80px)
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const targetPosition = rect.top + scrollTop - 120; // Increased from 80px to 120px offset for header
+                
+                // Scroll to the element with smooth behavior
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
         });
         tocItem.appendChild(tocLink);
         tocList.appendChild(tocItem);
@@ -814,6 +822,19 @@ function wikiLinkClickHandler(event) {
             
             const language = languageSelect ? languageSelect.value : 'en';
             const writingStyle = writingStyleSelect ? writingStyleSelect.value : 'normal';
+            
+            // Store the current article data as context for the new search
+            // This is important to maintain context for related searches
+            if (!window.currentArticleData) {
+                console.log('Setting currentArticleData for context in related search');
+                // Look for article data in the DOM if not already set
+                const articleTitle = document.querySelector('.article-title');
+                if (articleTitle) {
+                    window.currentArticleData = {
+                        title: articleTitle.textContent
+                    };
+                }
+            }
             
             // Show loading state
             document.body.classList.add('search-state');

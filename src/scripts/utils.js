@@ -799,24 +799,27 @@ function cacheArticle(query, articleData) {
     if (!cachingEnabled) return;
     
     try {
-        const cacheKey = `article_${query.toLowerCase().replace(/\s+/g, '_')}`;
+        // Add writing style to the cache key to differentiate same query with different styles
+        const writingStyle = articleData.writingStyle || 'normal';
+        const cacheKey = `article_${query.toLowerCase().replace(/\s+/g, '_')}_${writingStyle}`;
         sessionStorage.setItem(cacheKey, JSON.stringify(articleData));
-        console.log('Article cached:', query);
+        console.log('Article cached:', query, 'with style:', writingStyle);
     } catch (error) {
         console.error('Error caching article:', error);
     }
 }
 
 // Get cached article
-function getCachedArticle(query) {
+function getCachedArticle(query, writingStyle = 'normal') {
     if (!cachingEnabled) return null;
     
     try {
-        const cacheKey = `article_${query.toLowerCase().replace(/\s+/g, '_')}`;
+        // Use writing style in the cache key
+        const cacheKey = `article_${query.toLowerCase().replace(/\s+/g, '_')}_${writingStyle}`;
         const cachedArticle = sessionStorage.getItem(cacheKey);
         
         if (cachedArticle) {
-            console.log('Using cached article for:', query);
+            console.log('Using cached article for:', query, 'with style:', writingStyle);
             return JSON.parse(cachedArticle);
         }
     } catch (error) {
