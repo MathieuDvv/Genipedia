@@ -293,17 +293,18 @@ export async function performSearch(query, language, writingStyle) {
             }
             
         // Process image result
-        if (imageResult.success) {
+        if (imageResult.success && imageResult.imageData) {
             addProgressStep('Image fetched (in parallel)', imageResult.imageTime);
             
-            if (imageResult.imageData && imageResult.imageData.imageUrl) {
+            if (imageResult.imageData.imageUrl) {
                 articleData.imageUrl = imageResult.imageData.imageUrl;
                 articleData.imageSource = imageResult.imageData.sourceUrl;
                 articleData.imageTitle = imageResult.imageData.title;
                 console.log('Image added to article data');
             }
         } else {
-            addProgressStep('Image fetch failed');
+            addProgressStep('Image fetch skipped');
+            console.log('No image added to article');
         }
         
         // Cache the article
@@ -892,148 +893,44 @@ export async function fetchUnsplashImage(query) {
     console.log('Fetching image for topic:', query);
     
     try {
-        // Check if AI image suggestion is enabled
-        const useAiSuggestion = document.getElementById('image-suggestion-toggle')?.checked || false;
-        let imageSearchTerm = query;
-        let fallbackTerms = [];
-        
-        if (useAiSuggestion) {
-            console.log('Using AI image suggestion for better image search term');
-            try {
-                // Add timeout for AI suggestion to prevent long waits
-                const suggestPromise = suggestImageSearchTerm(query);
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('AI suggestion timeout')), 5000)
-                );
-                
-                // Race between the suggestion and the timeout
-                const suggestedTerm = await Promise.race([suggestPromise, timeoutPromise]);
-                
-                if (suggestedTerm) {
-                    console.log(`AI suggested image search term: "${suggestedTerm}" (original: "${query}")`);
-                    imageSearchTerm = suggestedTerm;
-                    
-                    // Store fallback terms for later use if the main term fails
-                    if (window.suggestedImageTerms && window.suggestedImageTerms.length > 1) {
-                        fallbackTerms = window.suggestedImageTerms.slice(1); // Skip the first term which we're already using
-                        console.log(`Fallback terms available: ${fallbackTerms.join(', ')}`);
-                    }
-                }
-            } catch (error) {
-                console.warn('Error or timeout getting AI image suggestion:', error.message);
-                // Fall back to original query
-            }
-        }
-        
         // Check cache for image search results
-        const cachedImage = window.AIPediaUtils.getCachedImage(imageSearchTerm);
+        const cachedImage = window.AIPediaUtils.getCachedImage(query);
         
         if (cachedImage) {
             return cachedImage;
         }
         
         // Try Unsplash API through our proxy endpoint
-        try {
-            console.log('Fetching from Unsplash API via proxy');
-            const response = await fetch(`https://genipedia.vercel.app/api/unsplash/photos/random?query=${encodeURIComponent(query)}`, {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                console.warn(`Unsplash API request failed with status ${response.status}`);
-                
-                // Try fallback terms if available
-                if (fallbackTerms.length > 0) {
-                    console.log(`Trying fallback terms: ${fallbackTerms.join(', ')}`);
-                    
-                    // Try each fallback term in sequence
-                    for (const fallbackTerm of fallbackTerms) {
-                        console.log(`Trying fallback term: "${fallbackTerm}"`);
-                        try {
-                            const fallbackUrl = `/api/unsplash/photos/random?query=${encodeURIComponent(fallbackTerm)}`;
-                            const fallbackResponse = await fetch(fallbackUrl);
-                            
-                            if (fallbackResponse.ok) {
-                                const fallbackData = await fallbackResponse.json();
-                                console.log(`Image found on Unsplash using fallback term "${fallbackTerm}":`, fallbackData.urls.regular);
-                                
-                                const imageData = {
-                                    imageUrl: fallbackData.urls.regular,
-                                    sourceUrl: fallbackData.links.html,
-                                    title: `Image by ${fallbackData.user.name} on Unsplash (fallback: ${fallbackTerm})`
-                                };
-                                
-                                // Cache the image data
-                                window.AIPediaUtils.cacheImage(imageSearchTerm, imageData);
-                                
-                                return imageData;
-                            }
-                        } catch (fallbackError) {
-                            console.warn(`Error with fallback term "${fallbackTerm}":`, fallbackError);
-                            // Continue to next fallback term
-                        }
-                    }
-                }
-                
-                // If we get here, all fallback terms failed or none were available
-                console.warn('All image search attempts failed, using fallback image');
-                return getFallbackImage(imageSearchTerm);
+        console.log('Fetching from Unsplash API via proxy');
+        const response = await fetch(`https://genipedia.vercel.app/api/unsplash/photos/random?query=${encodeURIComponent(query)}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             }
-            
-            const data = await response.json();
-            console.log('Image found on Unsplash:', data.urls.regular);
-            
-            // Use the regular URL directly instead of the download URL to avoid 404 errors
-            const imageData = {
-                    imageUrl: data.urls.regular,
-                    sourceUrl: data.links.html,
-                    title: `Image by ${data.user.name} on Unsplash`
-                };
-            
-            // Cache the image data
-            window.AIPediaUtils.cacheImage(imageSearchTerm, imageData);
-            
-            return imageData;
-        } catch (error) {
-            console.error('Error fetching from Unsplash API:', error);
-            // Use fallback image
-            return getFallbackImage(imageSearchTerm);
+        });
+        
+        if (!response.ok) {
+            console.warn(`Unsplash API request failed with status ${response.status}`);
+            return null;
         }
+        
+        const data = await response.json();
+        console.log('Image found on Unsplash:', data.urls.regular);
+        
+        const imageData = {
+            imageUrl: data.urls.regular,
+            sourceUrl: data.links.html,
+            title: `Image by ${data.user.name} on Unsplash`
+        };
+        
+        // Cache the image data
+        window.AIPediaUtils.cacheImage(query, imageData);
+        
+        return imageData;
     } catch (error) {
         console.error('Error fetching image:', error);
-        return getFallbackImage(query);
+        return null;
     }
-}
-
-/**
- * Gets a fallback image for a topic
- * @param {string} query - The search query
- * @returns {Object} - The fallback image data
- */
-function getFallbackImage(query) {
-    // Use a placeholder image service with the query as a seed
-    const seed = encodeURIComponent(query.toLowerCase().replace(/\s+/g, '-'));
-            return {
-        imageUrl: `https://picsum.photos/seed/${seed}/800/400`,
-        sourceUrl: 'https://picsum.photos/',
-        title: 'Image from Lorem Picsum'
-    };
-}
-
-/**
- * Checks if an image exists
- * @param {string} url - The image URL
- * @returns {Promise<boolean>} - Whether the image exists
- */
-export async function checkImageExists(url) {
-    return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-        img.src = url;
-    });
 }
 
 /**

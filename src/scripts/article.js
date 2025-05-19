@@ -150,22 +150,23 @@ export async function generateArticle(query, language, writingStyle) {
             const response = await fetch('https://genipedia.vercel.app/api/deepseek', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify({
                     model: 'deepseek-chat',
                     messages: [
                         {
                             role: 'system',
-                            content: 'You are a helpful assistant that generates concise, informative articles. Always output in JSON format only.'
+                            content: window.CONFIG.SYSTEM_PROMPT
                         },
                         {
                             role: 'user',
                             content: prompt
                         }
                     ],
-                    temperature: 0.5, // Lowered from 0.7 for more consistent, faster responses
-                    max_tokens: 2000  // Reduced from 4000 for faster generation
+                    temperature: 0.5,
+                    max_tokens: 2000
                 }),
                 signal: controller.signal
             });
@@ -175,9 +176,14 @@ export async function generateArticle(query, language, writingStyle) {
             console.log('API response status:', response.status);
             
             if (!response.ok) {
-                const errorData = await response.json();
-                console.error('API error response:', errorData);
-                throw new Error(errorData.error?.message || 'Failed to generate article');
+                let errorMessage;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || 'Failed to generate article';
+                } catch (e) {
+                    errorMessage = `HTTP error ${response.status}: ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
             
             const data = await response.json();
@@ -521,7 +527,7 @@ export function renderArticle(articleData) {
     articleHeader.appendChild(articleSummaryContainer);
     
     // Add article image if available
-    if (articleData.imageUrl) {
+    if (articleData.imageUrl && articleData.imageSource) {
         console.log('Adding image to article:', articleData.imageUrl);
         const articleImageContainer = document.createElement('div');
         articleImageContainer.className = 'article-image-container';
@@ -531,8 +537,16 @@ export function renderArticle(articleData) {
         articleImage.src = articleData.imageUrl;
         articleImage.alt = stripMarkdown(articleData.title);
         
+        // Add error handler for image loading
+        articleImage.onerror = () => {
+            console.log('Image failed to load, removing image container');
+            if (articleImageContainer.parentNode) {
+                articleImageContainer.parentNode.removeChild(articleImageContainer);
+            }
+        };
+        
         // Add click event to trigger download event for Unsplash
-        if (articleData.imageSource && articleData.imageSource.includes('unsplash.com')) {
+        if (articleData.imageSource.includes('unsplash.com')) {
             // Trigger the Unsplash download event when the image is loaded
             articleImage.addEventListener('load', () => {
                 // Use the utility function to trigger the download event
@@ -562,7 +576,7 @@ export function renderArticle(articleData) {
         imageCaption.className = 'image-caption';
         
         // Properly attribute Unsplash photos according to guidelines
-        if (articleData.imageSource && articleData.imageSource.includes('unsplash.com')) {
+        if (articleData.imageSource.includes('unsplash.com')) {
             // Extract photographer name from the title if available
             let photographerName = 'Photographer';
             
