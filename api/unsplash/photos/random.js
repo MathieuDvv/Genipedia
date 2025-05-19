@@ -1,11 +1,34 @@
-// Unsplash random photos API route handler
-export default async function handler(req, res) {
+export const config = {
+  runtime: 'edge'
+};
+
+export default async function handler(req) {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
+
   if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
   try {
-    const { query } = req.query;
+    const url = new URL(req.url);
+    const query = url.searchParams.get('query');
+    
     const response = await fetch(
       `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}`,
       {
@@ -16,9 +39,22 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    return res.status(response.status).json(data);
+    
+    return new Response(JSON.stringify(data), {
+      status: response.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (error) {
     console.error('Unsplash API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 } 
