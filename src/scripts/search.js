@@ -745,7 +745,7 @@ async function suggestImageSearchTermV2(query) {
         ];
         
         // Make the API request using the server proxy
-        const response = await fetch('/api/deepseek', {
+        const response = await fetch('https://genipedia.vercel.app/api/deepseek', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -935,10 +935,13 @@ export async function fetchUnsplashImage(query) {
         // Try Unsplash API through our proxy endpoint
         try {
             console.log('Fetching from Unsplash API via proxy');
-            const proxyUrl = `/api/unsplash/photos/random?query=${encodeURIComponent(imageSearchTerm)}`;
+            const response = await fetch(`https://genipedia.vercel.app/api/unsplash/photos/random?query=${encodeURIComponent(query)}`, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
             
-            const response = await fetch(proxyUrl);
-                if (!response.ok) {
+            if (!response.ok) {
                 console.warn(`Unsplash API request failed with status ${response.status}`);
                 
                 // Try fallback terms if available
@@ -977,11 +980,11 @@ export async function fetchUnsplashImage(query) {
                 // If we get here, all fallback terms failed or none were available
                 console.warn('All image search attempts failed, using fallback image');
                 return getFallbackImage(imageSearchTerm);
-                }
-                
-                const data = await response.json();
-                console.log('Image found on Unsplash:', data.urls.regular);
-                
+            }
+            
+            const data = await response.json();
+            console.log('Image found on Unsplash:', data.urls.regular);
+            
             // Use the regular URL directly instead of the download URL to avoid 404 errors
             const imageData = {
                     imageUrl: data.urls.regular,
@@ -993,8 +996,8 @@ export async function fetchUnsplashImage(query) {
             window.AIPediaUtils.cacheImage(imageSearchTerm, imageData);
             
             return imageData;
-            } catch (error) {
-                console.error('Error fetching from Unsplash API:', error);
+        } catch (error) {
+            console.error('Error fetching from Unsplash API:', error);
             // Use fallback image
             return getFallbackImage(imageSearchTerm);
         }

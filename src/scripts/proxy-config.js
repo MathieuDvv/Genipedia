@@ -3,7 +3,7 @@
  */
 const CONFIG = {
     // API endpoint for DeepSeek (proxied through our server)
-    API_URL: '/api/deepseek',
+    API_URL: 'https://genipedia.vercel.app/api/deepseek',
     
     // Model to use
     MODEL: 'deepseek-chat',
@@ -19,7 +19,7 @@ const CONFIG = {
     
     // Unsplash API configuration (proxied)
     UNSPLASH: {
-        API_URL: '/api/unsplash',
+        API_URL: 'https://genipedia.vercel.app/api/unsplash',
         ACCESS_KEY: 'proxy-handled', // No need for client-side key
         SECRET_KEY: 'proxy-handled', // No need for client-side key
         APP_ID: '716699',
@@ -30,7 +30,7 @@ const CONFIG = {
     
     // ElevenLabs API configuration (proxied)
     ELEVENLABS: {
-        API_URL: '/api/elevenlabs',
+        API_URL: 'https://genipedia.vercel.app/api/elevenlabs',
         API_KEY: 'proxy-handled', // No need for client-side key
         VOICES: {
             'en': '21m00Tcm4TlvDq8ikWAM', // Rachel (English)
@@ -103,9 +103,9 @@ export const APP_SETTINGS = {
     defaultFontSize: 'medium',
     defaultAccentColor: 'black',
     apiEndpoints: {
-        deepseek: '/api/deepseek',
-        elevenlabs: '/api/elevenlabs/tts',
-        unsplash: '/api/unsplash/photos/random'
+        deepseek: 'https://genipedia.vercel.app/api/deepseek',
+        elevenlabs: 'https://genipedia.vercel.app/api/elevenlabs/tts',
+        unsplash: 'https://genipedia.vercel.app/api/unsplash/photos/random'
     },
     voiceId: '21m00Tcm4TlvDq8ikWAM', // ElevenLabs voice ID
     supportedLanguages: [

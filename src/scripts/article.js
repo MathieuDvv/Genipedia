@@ -147,7 +147,7 @@ export async function generateArticle(query, language, writingStyle) {
         try {
             // Make API request to DeepSeek API
             console.log('Making API request to DeepSeek...');
-            const response = await fetch('/api/deepseek', {
+            const response = await fetch('https://genipedia.vercel.app/api/deepseek', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
