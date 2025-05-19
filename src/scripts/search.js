@@ -6,6 +6,7 @@ import { searchBar, languageSelect, writingStyleSelect, articleContainer, histor
 import { updateUIState } from './dom.js';
 import { generateArticle, renderArticle, getLanguageName, generatePrompt } from './article.js';
 import { getLocaleString, setLocale } from './locales-module.js';
+import { preloadImage } from './utils.js';
 
 // Search history
 export let searchHistory = [];

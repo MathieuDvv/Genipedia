@@ -861,70 +861,13 @@ function getCachedImage(query) {
     return null;
 }
 
-// Initialize the global AIPediaUtils object
-window.AIPediaUtils = {
-    /**
-     * Escapes HTML in a string
-     * @param {string} str - The string to escape
-     * @returns {string} - The escaped string
-     */
-    escapeHTML: function(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    },
-
-    /**
-     * Gets the language name from a language code
-     * @param {string} code - The language code
-     * @returns {string} - The language name
-     */
-    getLanguageName: function(code) {
-        const languages = {
-            'en': 'English',
-            'fr': 'French',
-            'es': 'Spanish',
-            'de': 'German',
-            'ja': 'Japanese'
-        };
-        return languages[code] || 'English';
-    },
-
-    /**
-     * Debounces a function
-     * @param {Function} func - The function to debounce
-     * @param {number} wait - The wait time in milliseconds
-     * @returns {Function} - The debounced function
-     */
-    debounce: function(func, wait) {
-        let timeout;
-        return function(...args) {
-            const context = this;
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), wait);
-        };
-    },
-
-    /**
-     * Generates a unique ID
-     * @param {string} [prefix='id'] - Optional prefix for the ID
-     * @param {boolean} [useTimestamp=false] - Whether to include a timestamp in the ID
-     * @returns {string} - A unique ID
-     */
-    generateId: function(prefix = 'id', useTimestamp = false) {
-        const randomPart = Math.random().toString(36).substring(2, 9);
-        if (useTimestamp) {
-            const timestampPart = Date.now().toString(36);
-            return prefix ? `${prefix}-${timestampPart}-${randomPart}` : `${timestampPart}-${randomPart}`;
-        }
-        return prefix ? `${prefix}-${randomPart}` : randomPart;
-    },
-
-    formatDate,
+// Export all utility functions that are used by other modules
+export {
     escapeHTML,
     getLanguageName,
     debounce,
     generateId,
+    formatDate,
     saveElevenLabsApiKey,
     getElevenLabsApiKey,
     validateElevenLabsApiKey,
@@ -947,19 +890,6 @@ window.AIPediaUtils = {
     getSelectedTTSApi,
     saveSelectedTTSApi,
     isCustomTTSEnabled,
-    
-    // Initialize the rate limiter
-    rateLimiter: createRateLimiter(3, 60 * 1000),
-    
-    // Add a getLocaleString function that uses AIPediaLocales if available
-    getLocaleString: function(key, ...args) {
-        if (window.AIPediaLocales && typeof window.AIPediaLocales.getLocaleString === 'function') {
-            return window.AIPediaLocales.getLocaleString(key, ...args);
-        }
-        // Fallback if AIPediaLocales is not available
-        return key;
-    },
-    
     setCachingEnabled,
     isCachingEnabled,
     clearArticleCache,
@@ -969,6 +899,54 @@ window.AIPediaUtils = {
     cacheImage,
     getCachedImage
 };
+
+// Initialize the global AIPediaUtils object for browser usage
+if (typeof window !== 'undefined') {
+    window.AIPediaUtils = {
+        escapeHTML,
+        getLanguageName,
+        debounce,
+        generateId,
+        formatDate,
+        saveElevenLabsApiKey,
+        getElevenLabsApiKey,
+        validateElevenLabsApiKey,
+        isElevenLabsBetaEnabled,
+        generatePDF,
+        downloadHTML,
+        fetchImageFromUnsplash,
+        formatAudioTime,
+        preloadImage,
+        throttle,
+        getRandomItem,
+        shuffleArray,
+        truncateString,
+        capitalizeFirstLetter,
+        isInViewport,
+        getScrollPercentage,
+        copyToClipboard,
+        triggerUnsplashDownload,
+        createRateLimiter,
+        getSelectedTTSApi,
+        saveSelectedTTSApi,
+        isCustomTTSEnabled,
+        rateLimiter: createRateLimiter(3, 60 * 1000),
+        getLocaleString: function(key, ...args) {
+            if (window.AIPediaLocales && typeof window.AIPediaLocales.getLocaleString === 'function') {
+                return window.AIPediaLocales.getLocaleString(key, ...args);
+            }
+            return key;
+        },
+        setCachingEnabled,
+        isCachingEnabled,
+        clearArticleCache,
+        clearImageCache,
+        cacheArticle,
+        getCachedArticle,
+        cacheImage,
+        getCachedImage
+    };
+}
 
 // For CommonJS environments
 if (typeof module !== 'undefined' && module.exports) {
