@@ -428,7 +428,7 @@ function formatAudioTime(seconds) {
  * @param {string} src - The image source
  * @returns {Promise<HTMLImageElement>} - The image element
  */
-function preloadImage(src) {
+export function preloadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
@@ -711,7 +711,7 @@ function createRateLimiter(maxRequests = 3, timeWindow = 60 * 1000) {
 }
 
 // Create a global rate limiter instance with stricter limits
-const rateLimiter = createRateLimiter(3, 60 * 1000); // 3 requests per minute
+const rateLimiter = createRateLimiter(3, 60 * 1000);
 
 // TTS API selection
 const TTS_API_SELECTION_KEY = 'tts_api_selection';
