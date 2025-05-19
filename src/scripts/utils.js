@@ -428,7 +428,7 @@ function formatAudioTime(seconds) {
  * @param {string} src - The image source
  * @returns {Promise<HTMLImageElement>} - The image element
  */
-export function preloadImage(src) {
+function preloadImage(src) {
     return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => resolve(img);
