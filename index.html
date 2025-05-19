@@ -401,7 +401,7 @@
 
     <!-- JavaScript -->
     <!-- Load utils.js first to make sure it's available for other modules -->
-    <script src="src/scripts/utils.js?v=1.8"></script>
+    <script type="module" src="src/scripts/utils.js?v=1.8"></script>
     
     <!-- Initialize AIPediaLocales with a fallback in case module loading fails -->
     <script>
@@ -419,7 +419,7 @@
     </script>
     
     <!-- Load locales.js -->
-    <script src="src/scripts/locales.js?v=1.8"></script>
+    <script type="module" src="src/scripts/locales.js?v=1.8"></script>
     
     <!-- Initialize Lucide icons after the DOM is loaded -->
     <script>
@@ -442,7 +442,7 @@
         });
     </script>
     
-    <!-- Load main.js directly -->
+    <!-- Load main.js -->
     <script type="module" src="src/scripts/main.js?v=1.8"></script>
 </body>
 </html> 
