@@ -19,47 +19,37 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/deepseek",
+      "methods": ["POST", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      },
-      "continue": true
+      }
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "^/src/scripts/(.*\\.js)",
+      "src": "/api/unsplash/photos/random",
+      "methods": ["GET", "OPTIONS"],
       "headers": {
-        "content-type": "application/javascript; charset=utf-8",
-        "cache-control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/src/scripts/$1"
-    },
-    {
-      "src": "^/src/styles/(.*\\.css)",
-      "headers": {
-        "content-type": "text/css; charset=utf-8",
-        "cache-control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/src/styles/$1"
-    },
-    {
-      "src": "^/src/assets/(.*)",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      },
-      "dest": "/src/assets/$1"
-    },
-    {
-      "handle": "filesystem"
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      }
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
     }
   ]
 } 

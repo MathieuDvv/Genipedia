@@ -16,7 +16,7 @@ export default async function handler(req) {
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+    return new Response(JSON.stringify({ error: 'Method not allowed', message: 'Only POST requests are allowed' }), {
       status: 405,
       headers: {
         'Content-Type': 'application/json',
@@ -27,19 +27,40 @@ export default async function handler(req) {
 
   try {
     const body = await req.json();
+    
+    // Validate request body
+    if (!body.messages || !Array.isArray(body.messages)) {
+      throw new Error('Invalid request body: messages array is required');
+    }
+
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Accept': 'application/json'
       },
       body: JSON.stringify(body)
     });
 
+    if (!response.ok) {
+      const error = await response.json();
+      return new Response(JSON.stringify({
+        error: error.error || 'DeepSeek API error',
+        message: error.message || 'Failed to get response from DeepSeek API'
+      }), {
+        status: response.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
+      });
+    }
+
     const data = await response.json();
     
     return new Response(JSON.stringify(data), {
-      status: response.status,
+      status: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -47,7 +68,10 @@ export default async function handler(req) {
     });
   } catch (error) {
     console.error('DeepSeek API error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({
+      error: 'Internal server error',
+      message: error.message
+    }), {
       status: 500,
       headers: {
         'Content-Type': 'application/json',
