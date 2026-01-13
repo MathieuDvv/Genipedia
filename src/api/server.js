@@ -15,45 +15,45 @@ const rateLimiter = {
   dailyLimit: 400, // Increased from 300 to 400 requests per day per IP
   requestCounts: new Map(),
   dailyCounts: new Map(),
-  
+
   resetDaily() {
     this.dailyCounts.clear();
     console.log('Daily rate limits reset');
   },
-  
+
   middleware(req, res, next) {
     const ip = req.ip || req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const now = Date.now();
-    
+
     // Initialize or get current counts
     if (!this.requestCounts.has(ip)) {
       this.requestCounts.set(ip, []);
     }
-    
+
     if (!this.dailyCounts.has(ip)) {
       this.dailyCounts.set(ip, 0);
     }
-    
+
     // Get current request times and daily count
     const requests = this.requestCounts.get(ip);
     let dailyCount = this.dailyCounts.get(ip);
-    
+
     // Clean up old requests outside the window
     const recentRequests = requests.filter(time => (now - time) < this.windowMs);
     this.requestCounts.set(ip, recentRequests);
-    
+
     // Check if rate limited
     if (recentRequests.length >= this.maxRequests) {
       const oldestRequest = Math.min(...recentRequests);
       const resetTime = Math.ceil((this.windowMs - (now - oldestRequest)) / 1000);
-      
+
       return res.status(429).json({
         error: 'Rate limit exceeded',
         message: 'Too many requests, please try again later.',
         retryAfter: resetTime
       });
     }
-    
+
     // Check daily limit
     if (dailyCount >= this.dailyLimit) {
       return res.status(429).json({
@@ -62,17 +62,17 @@ const rateLimiter = {
         retryAfter: 'tomorrow'
       });
     }
-    
+
     // Update counts
     recentRequests.push(now);
     this.requestCounts.set(ip, recentRequests);
     this.dailyCounts.set(ip, dailyCount + 1);
-    
+
     // Add rate limit headers
     res.setHeader('X-RateLimit-Limit', this.maxRequests);
     res.setHeader('X-RateLimit-Remaining', this.maxRequests - recentRequests.length);
     res.setHeader('X-RateLimit-Reset', Math.ceil((now + this.windowMs) / 1000));
-    
+
     next();
   }
 };
@@ -90,103 +90,81 @@ app.use(express.static(path.join(__dirname, '../../')));
 // Apply rate limiting to API endpoints
 app.use('/api/', (req, res, next) => rateLimiter.middleware(req, res, next));
 
-// Proxy endpoint for DeepSeek API with token limits - optimized for speed
-app.post('/api/deepseek', async (req, res) => {
+// Proxy endpoint for Gemini API
+app.post('/api/gemini', async (req, res) => {
   try {
-    // Validate and enforce token limits
-    if (req.body.messages && Array.isArray(req.body.messages)) {
-      // Calculate approximate token count based on characters
-      const messageText = req.body.messages.map(msg => msg.content).join(' ');
-      const estimatedTokens = Math.ceil(messageText.length / 4); // Rough estimate: 4 chars per token
-      
-      // Set more aggressive limits for faster responses
-      const MAX_TOKENS = 2500; // Reduced from 4000
-      
-      if (estimatedTokens > MAX_TOKENS) {
-        return res.status(400).json({
-          error: 'Token limit exceeded',
-          message: 'Your request exceeds the maximum allowed tokens.'
-        });
-      }
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error('Gemini API key not configured');
     }
-    
-    // Reduced timeouts for faster responses
-    const TIMEOUT_MS = 55000; // Reduced from 110s to 55s
-    
-    // Create a promise that rejects after the timeout
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_MS);
-    });
-    
-    // Create the actual API request promise
-    const apiRequestPromise = (async () => {
-      // Forward the request to DeepSeek API
-      const apiKey = process.env.DEEPSEEK_API_KEY;
-      if (!apiKey) {
-        throw new Error('DeepSeek API key not configured');
+
+    // Validate request body
+    if (!req.body.messages || !Array.isArray(req.body.messages)) {
+      return res.status(400).json({ error: 'Invalid request', message: 'messages array is required' });
+    }
+
+    // Extract system prompt and user messages
+    const systemMessage = req.body.messages.find(m => m.role === 'system');
+    const userMessages = req.body.messages.filter(m => m.role !== 'system');
+
+    // Construct Gemini request payload
+    const geminiPayload = {
+      contents: userMessages.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      })),
+      generationConfig: {
+        temperature: req.body.temperature || 0.7,
+        maxOutputTokens: req.body.max_tokens || 8192,
       }
-      
-      // Modify the request to optimize for speed if not already set
-      if (!req.body.temperature) {
-        req.body.temperature = 0.5; // Lower temperature for more consistent, faster responses
+    };
+
+    if (systemMessage) {
+      geminiPayload.systemInstruction = {
+        parts: [{ text: systemMessage.content }]
+      };
+    }
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      geminiPayload,
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 60000
       }
-      
-      if (!req.body.max_tokens || req.body.max_tokens > 2000) {
-        req.body.max_tokens = 2000; // Limit response length for faster generation
-      }
-      
-      const apiResponse = await axios.post('https://api.deepseek.com/v1/chat/completions', req.body, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        timeout: TIMEOUT_MS - 1000 // Set axios timeout slightly shorter than our promise timeout
-      });
-      
-      return apiResponse.data;
-    })();
-    
-    // Race between the API request and the timeout
-    const result = await Promise.race([apiRequestPromise, timeoutPromise]);
-    
-    // Return the API response
-    res.json(result);
-    
-  } catch (error) {
-    console.error('DeepSeek API error:', error.message);
-    
-    // Handle specific error types
-    if (error.message === 'Request timed out') {
-      return res.status(504).json({
-        error: {
-          message: 'The request to DeepSeek API timed out. Please try again with a simpler query.'
+    );
+
+    // Transform Gemini response to OpenAI format
+    const content = response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    const transformedResponse = {
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: content
+          }
         }
-      });
-    }
-    
+      ]
+    };
+
+    res.json(transformedResponse);
+
+  } catch (error) {
+    console.error('Gemini API error:', error.message);
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
+      console.error('Gemini API error details:', error.response.data);
       return res.status(error.response.status).json({
         error: {
-          message: error.response.data.error?.message || 'Error from DeepSeek API'
-        }
-      });
-    } else if (error.request) {
-      // The request was made but no response was received
-      return res.status(503).json({
-        error: {
-          message: 'No response received from DeepSeek API. Please try again.'
-        }
-      });
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      return res.status(500).json({
-        error: {
-          message: 'Internal server error when connecting to DeepSeek API.'
+          message: error.response.data.error?.message || 'Error from Gemini API'
         }
       });
     }
+    return res.status(500).json({
+      error: {
+        message: 'Internal server error when connecting to Gemini API.'
+      }
+    });
   }
 });
 
@@ -194,7 +172,7 @@ app.post('/api/deepseek', async (req, res) => {
 app.get('/api/unsplash/photos/random', async (req, res) => {
   try {
     const query = req.query.query;
-    
+
     // Validate query parameter
     if (!query || query.length > 100) {
       return res.status(400).json({
@@ -202,17 +180,17 @@ app.get('/api/unsplash/photos/random', async (req, res) => {
         message: 'Query parameter is required and must be less than 100 characters.'
       });
     }
-    
+
     // Sanitize the query - remove any potentially harmful characters
     const sanitizedQuery = query.replace(/[^\w\s-]/g, '').trim();
-    
+
     if (!sanitizedQuery) {
       return res.status(400).json({
         error: 'Invalid query',
         message: 'Query contains invalid characters.'
       });
     }
-    
+
     const response = await axios.get(`https://api.unsplash.com/photos/random`, {
       params: {
         query: sanitizedQuery,
@@ -235,13 +213,13 @@ app.get('/api/unsplash/download', async (req, res) => {
     if (!downloadUrl) {
       return res.status(400).json({ error: 'Missing URL parameter' });
     }
-    
+
     const response = await axios.get(downloadUrl, {
       headers: {
         'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
       }
     });
-    
+
     res.status(200).json({ success: true });
   } catch (error) {
     console.error('Unsplash download tracking error:', error.response?.data || error.message);
@@ -255,10 +233,10 @@ app.get('/api/unsplash/download', async (req, res) => {
 app.post('/api/elevenlabs/tts/:voiceId', async (req, res) => {
   try {
     const { voiceId } = req.params;
-    
+
     // Use API key from request headers if available (for beta users), otherwise use env variable
     const apiKey = req.headers['xi-api-key'] || process.env.ELEVENLABS_API_KEY;
-    
+
     const response = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       req.body,
@@ -270,7 +248,7 @@ app.post('/api/elevenlabs/tts/:voiceId', async (req, res) => {
         responseType: 'arraybuffer'
       }
     );
-    
+
     // Set the same headers as the original response
     res.set('Content-Type', 'audio/mpeg');
     res.send(response.data);
@@ -287,7 +265,7 @@ app.get('/api/elevenlabs/voices', async (req, res) => {
   try {
     // Use API key from request headers if available (for beta users), otherwise use env variable
     const apiKey = req.headers['xi-api-key'] || process.env.ELEVENLABS_API_KEY;
-    
+
     const response = await axios.get('https://api.elevenlabs.io/v1/voices', {
       headers: {
         'xi-api-key': apiKey
@@ -306,15 +284,15 @@ app.get('/api/elevenlabs/voices', async (req, res) => {
 app.post('/api/free-tts', async (req, res) => {
   try {
     const { text, voice = 'en-US' } = req.body;
-    
+
     if (!text) {
       return res.status(400).json({ error: 'Text is required' });
     }
-    
+
     // Use Google Translate TTS as a free alternative
     // This is a simple implementation and might need to be adjusted based on usage limits
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${voice}&client=tw-ob`;
-    
+
     const response = await axios({
       method: 'get',
       url: url,
@@ -323,7 +301,7 @@ app.post('/api/free-tts', async (req, res) => {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       }
     });
-    
+
     // Set the content type header
     res.set('Content-Type', 'audio/mpeg');
     res.send(response.data);

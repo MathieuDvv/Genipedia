@@ -2,24 +2,24 @@
  * DeepSeek API Configuration (Proxied)
  */
 const CONFIG = {
-    // API endpoint for DeepSeek (proxied through our server)
-    API_URL: 'https://genipedia.vercel.app/api/deepseek',
-    
+    // API endpoint for Gemini (proxied through our server)
+    API_URL: '/api/gemini',
+
     // Model to use
     MODEL: 'deepseek-chat',
-    
+
     // Generation parameters
     PARAMS: {
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 8192,
         top_p: 0.95,
         frequency_penalty: 0.0,
         presence_penalty: 0.0
     },
-    
+
     // Unsplash API configuration (proxied)
     UNSPLASH: {
-        API_URL: 'https://genipedia.vercel.app/api/unsplash',
+        API_URL: '/api/unsplash',
         ACCESS_KEY: 'proxy-handled', // No need for client-side key
         SECRET_KEY: 'proxy-handled', // No need for client-side key
         APP_ID: '716699',
@@ -27,10 +27,10 @@ const CONFIG = {
             per_page: 3
         }
     },
-    
+
     // ElevenLabs API configuration (proxied)
     ELEVENLABS: {
-        API_URL: 'https://genipedia.vercel.app/api/elevenlabs',
+        API_URL: '/api/elevenlabs',
         API_KEY: 'proxy-handled', // No need for client-side key
         VOICES: {
             'en': '21m00Tcm4TlvDq8ikWAM', // Rachel (English)
@@ -41,7 +41,7 @@ const CONFIG = {
         DEFAULT_VOICE_ID: '21m00Tcm4TlvDq8ikWAM', // Rachel voice (English)
         MODEL_ID: 'eleven_multilingual_v2' // Using multilingual model for better language support
     },
-    
+
     // System prompt for article generation
     SYSTEM_PROMPT: `You are an AI assistant that generates Wikipedia-style articles. Your task is to create comprehensive, factual, and well-structured content on any topic requested by the user.
 
@@ -103,9 +103,9 @@ export const APP_SETTINGS = {
     defaultFontSize: 'medium',
     defaultAccentColor: 'black',
     apiEndpoints: {
-        deepseek: 'https://genipedia.vercel.app/api/deepseek',
-        elevenlabs: 'https://genipedia.vercel.app/api/elevenlabs/tts',
-        unsplash: 'https://genipedia.vercel.app/api/unsplash/photos/random'
+        deepseek: '/api/gemini',
+        elevenlabs: '/api/elevenlabs/tts',
+        unsplash: '/api/unsplash/photos/random'
     },
     voiceId: '21m00Tcm4TlvDq8ikWAM', // ElevenLabs voice ID
     supportedLanguages: [
