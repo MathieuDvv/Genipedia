@@ -1,8 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "",
-  "devCommand": "",
-  "installCommand": "",
   "builds": [
     {
       "src": "api/**/*.js",
@@ -17,34 +14,14 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/gemini",
-      "methods": [
-        "POST",
-        "OPTIONS"
-      ],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
+      "source": "/api/gemini",
+      "destination": "/api/gemini.js"
     },
     {
-      "src": "/api/unsplash/photos/random",
-      "methods": [
-        "GET",
-        "OPTIONS"
-      ],
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
-      }
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/api/unsplash/photos/random",
+      "destination": "/api/unsplash/proxy.js"
     }
   ],
   "headers": [
