@@ -884,8 +884,9 @@ async function suggestImageSearchTerm(query) {
 }
 
 /**
- * Fetches a Wikipedia image for a topic using the MediaWiki API
- * Uses combined search + pageimages in a single request for efficiency
+ * Fetches a Wikipedia image for a topic using the MediaWiki API.
+ * Tries pageimages (fast) first, falls back to fetching the first
+ * content image from the best search result page.
  * @param {string} query - The search query
  * @returns {Promise<Object>} - The image data object with imageUrl, sourceUrl, and title
  */
@@ -896,7 +897,7 @@ export async function fetchWikiImage(query) {
         const cachedImage = window.AIPediaUtils.getCachedImage(query);
         if (cachedImage) return cachedImage;
 
-        const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=5&prop=pageimages&pithumbsize=600&pilimit=5&format=json&origin=*`;
+        const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=5&prop=pageimages|images&pithumbsize=600&imlimit=5&format=json&origin=*`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -914,6 +915,7 @@ export async function fetchWikiImage(query) {
 
         const sortedPages = Object.values(pages).sort((a, b) => (a.index || 0) - (b.index || 0));
 
+        // First pass: try pageimages thumbnails
         for (const page of sortedPages) {
             if (page.thumbnail) {
                 const result = {
@@ -923,6 +925,40 @@ export async function fetchWikiImage(query) {
                 };
                 window.AIPediaUtils.cacheImage(query, result);
                 return result;
+            }
+        }
+
+        // Fallback: try to get the first actual content image from the best page
+        for (const page of sortedPages) {
+            const images = page.images || [];
+            const contentImage = images.find(img =>
+                !img.title.endsWith('.svg') &&
+                !img.title.includes('icon') &&
+                !img.title.includes('logo') &&
+                !img.title.includes('Flag_')
+            );
+
+            if (contentImage) {
+                const imgUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(contentImage.title)}&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json&origin=*`;
+                const imgResponse = await fetch(imgUrl);
+
+                if (imgResponse.ok) {
+                    const imgData = await imgResponse.json();
+                    const imgPages = imgData.query?.pages;
+                    if (imgPages) {
+                        const imgPage = Object.values(imgPages)[0];
+                        const imageInfo = imgPage?.imageinfo?.[0];
+                        if (imageInfo) {
+                            const result = {
+                                imageUrl: imageInfo.thumburl || imageInfo.url,
+                                sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
+                                title: page.title
+                            };
+                            window.AIPediaUtils.cacheImage(query, result);
+                            return result;
+                        }
+                    }
+                }
             }
         }
 
