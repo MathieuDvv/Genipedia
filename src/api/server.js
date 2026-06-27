@@ -90,12 +90,12 @@ app.use(express.static(path.join(__dirname, '../../')));
 // Apply rate limiting to API endpoints
 app.use('/api/', (req, res, next) => rateLimiter.middleware(req, res, next));
 
-// Proxy endpoint for Gemini API
-app.post('/api/gemini', async (req, res) => {
+// Proxy endpoint for DeepSeek API
+app.post('/api/deepseek', async (req, res) => {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
-      throw new Error('Gemini API key not configured');
+      throw new Error('DeepSeek API key not configured');
     }
 
     // Validate request body
@@ -103,66 +103,39 @@ app.post('/api/gemini', async (req, res) => {
       return res.status(400).json({ error: 'Invalid request', message: 'messages array is required' });
     }
 
-    // Extract system prompt and user messages
-    const systemMessage = req.body.messages.find(m => m.role === 'system');
-    const userMessages = req.body.messages.filter(m => m.role !== 'system');
-
-    // Construct Gemini request payload
-    const geminiPayload = {
-      contents: userMessages.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      })),
-      generationConfig: {
-        temperature: req.body.temperature || 0.7,
-        maxOutputTokens: req.body.max_tokens || 8192,
-      }
-    };
-
-    if (systemMessage) {
-      geminiPayload.systemInstruction = {
-        parts: [{ text: systemMessage.content }]
-      };
-    }
-
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      geminiPayload,
+      'https://api.deepseek.com/chat/completions',
       {
-        headers: { 'Content-Type': 'application/json' },
+        model: req.body.model || 'deepseek-v4-flash',
+        messages: req.body.messages,
+        temperature: req.body.temperature || 0.7,
+        max_tokens: req.body.max_tokens || 8192,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
         timeout: 60000
       }
     );
 
-    // Transform Gemini response to OpenAI format
-    const content = response.data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-    const transformedResponse = {
-      choices: [
-        {
-          message: {
-            role: 'assistant',
-            content: content
-          }
-        }
-      ]
-    };
-
-    res.json(transformedResponse);
+    // DeepSeek returns OpenAI-compatible format directly
+    res.json(response.data);
 
   } catch (error) {
-    console.error('Gemini API error:', error.message);
+    console.error('DeepSeek API error:', error.message);
     if (error.response) {
-      console.error('Gemini API error details:', error.response.data);
+      console.error('DeepSeek API error details:', error.response.data);
       return res.status(error.response.status).json({
         error: {
-          message: error.response.data.error?.message || 'Error from Gemini API'
+          message: error.response.data.error?.message || 'Error from DeepSeek API'
         }
       });
     }
     return res.status(500).json({
       error: {
-        message: 'Internal server error when connecting to Gemini API.'
+        message: 'Internal server error when connecting to DeepSeek API.'
       }
     });
   }

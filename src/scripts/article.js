@@ -145,16 +145,16 @@ export async function generateArticle(query, language, writingStyle) {
         const timeoutId = setTimeout(() => controller.abort(), 60000);
 
         try {
-            // Make API request to Gemini API
-            console.log('Making API request to Gemini...');
-            const response = await fetch(window.CONFIG.API_URL || '/api/gemini', {
+            // Make API request to DeepSeek API
+            console.log('Making API request to DeepSeek...');
+            const response = await fetch(window.CONFIG.API_URL || '/api/deepseek', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 },
                 body: JSON.stringify({
-                    model: 'gemini-1.5-flash',
+                    model: 'deepseek-v4-flash',
                     messages: [
                         {
                             role: 'system',

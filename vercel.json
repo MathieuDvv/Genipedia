@@ -16,8 +16,8 @@
   ],
   "rewrites": [
     {
-      "source": "/api/gemini",
-      "destination": "/api/gemini.js"
+      "source": "/api/deepseek",
+      "destination": "/api/deepseek.js"
     },
     {
       "source": "/api/unsplash/photos/random",

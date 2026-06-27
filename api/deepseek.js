@@ -33,44 +33,28 @@ export default async function handler(req) {
             throw new Error('Invalid request body: messages array is required');
         }
 
-        // Extract system prompt and user messages
-        const systemMessage = body.messages.find(m => m.role === 'system');
-        const userMessages = body.messages.filter(m => m.role !== 'system');
-
-        // Construct Gemini request payload
-        const geminiPayload = {
-            contents: userMessages.map(msg => ({
-                role: msg.role === 'user' ? 'user' : 'model',
-                parts: [{ text: msg.content }]
-            })),
-            generationConfig: {
-                temperature: body.temperature || 0.7,
-                maxOutputTokens: body.max_tokens || 8192,
-            }
-        };
-
-        if (systemMessage) {
-            geminiPayload.systemInstruction = {
-                parts: [{ text: systemMessage.content }]
-            };
-        }
-
-        const API_KEY = process.env.GEMINI_API_KEY;
+        const API_KEY = process.env.DEEPSEEK_API_KEY;
         if (!API_KEY) {
-            throw new Error('GEMINI_API_KEY is not set');
+            throw new Error('DEEPSEEK_API_KEY is not set');
         }
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${API_KEY}`
             },
-            body: JSON.stringify(geminiPayload)
+            body: JSON.stringify({
+                model: body.model || 'deepseek-v4-flash',
+                messages: body.messages,
+                temperature: body.temperature || 0.7,
+                max_tokens: body.max_tokens || 8192,
+            })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('Gemini API error detail:', errorText);
+            console.error('DeepSeek API error detail:', errorText);
             let errorJson;
             try {
                 errorJson = JSON.parse(errorText);
@@ -79,8 +63,8 @@ export default async function handler(req) {
             }
 
             return new Response(JSON.stringify({
-                error: errorJson.error?.message || 'Gemini API error',
-                message: 'Failed to get response from Gemini API'
+                error: errorJson.error?.message || 'DeepSeek API error',
+                message: 'Failed to get response from DeepSeek API'
             }), {
                 status: response.status,
                 headers: {
@@ -92,21 +76,7 @@ export default async function handler(req) {
 
         const data = await response.json();
 
-        // Transform Gemini response to OpenAI format for frontend compatibility
-        const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-        const transformedResponse = {
-            choices: [
-                {
-                    message: {
-                        role: 'assistant',
-                        content: content
-                    }
-                }
-            ]
-        };
-
-        return new Response(JSON.stringify(transformedResponse), {
+        return new Response(JSON.stringify(data), {
             status: 200,
             headers: {
                 'Content-Type': 'application/json',
@@ -114,7 +84,7 @@ export default async function handler(req) {
             },
         });
     } catch (error) {
-        console.error('Gemini API handler error:', error);
+        console.error('DeepSeek API handler error:', error);
         return new Response(JSON.stringify({
             error: 'Internal server error',
             message: error.message

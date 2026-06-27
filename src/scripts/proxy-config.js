@@ -2,11 +2,11 @@
  * DeepSeek API Configuration (Proxied)
  */
 const CONFIG = {
-    // API endpoint for Gemini (proxied through our server)
-    API_URL: '/api/gemini',
+    // API endpoint for DeepSeek (proxied through our server)
+    API_URL: '/api/deepseek',
 
     // Model to use
-    MODEL: 'deepseek-chat',
+    MODEL: 'deepseek-v4-flash',
 
     // Generation parameters
     PARAMS: {
@@ -103,7 +103,7 @@ export const APP_SETTINGS = {
     defaultFontSize: 'medium',
     defaultAccentColor: 'black',
     apiEndpoints: {
-        deepseek: '/api/gemini',
+        deepseek: '/api/deepseek',
         elevenlabs: '/api/elevenlabs/tts',
         unsplash: '/api/unsplash/photos/random'
     },

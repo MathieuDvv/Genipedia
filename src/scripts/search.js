@@ -746,13 +746,13 @@ async function suggestImageSearchTermV2(query) {
         ];
 
         // Make the API request using the server proxy
-        const response = await fetch(window.CONFIG.API_URL || '/api/gemini', {
+        const response = await fetch(window.CONFIG.API_URL || '/api/deepseek', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "gemini-2.5-flash",
+                model: "deepseek-v4-flash",
                 messages: messages,
                 temperature: 0.3, // Lower temperature for more consistent results
                 max_tokens: 150
@@ -820,7 +820,7 @@ async function suggestImageSearchTermV1(query) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "deepseek-chat",
+                model: "deepseek-v4-flash",
                 messages: messages,
                 temperature: 0.7,
                 max_tokens: 100
