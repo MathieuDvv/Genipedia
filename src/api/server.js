@@ -116,7 +116,7 @@ app.post('/api/deepseek', async (req, res) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        timeout: 45000
+        timeout: 51000
       }
     );
 

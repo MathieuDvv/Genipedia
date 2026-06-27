@@ -597,7 +597,7 @@ export function updateHistoryList(list) {
  */
 export function estimateWaitTime(query) {
     // Base time of 12 seconds
-    let baseTime = 12;
+    let baseTime = 18;
 
     // Add 1 second for every 13 characters in the query
     let queryTime = Math.floor(query.length / 13);
@@ -622,7 +622,7 @@ export function estimateWaitTime(query) {
     const totalTime = (baseTime + queryTime) * networkMultiplier;
 
     // Return the estimated time, ensuring it's at least 7 seconds
-    return Math.max(7, Math.round(totalTime));
+    return Math.max(13, Math.round(totalTime));
 }
 
 /**

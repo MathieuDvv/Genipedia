@@ -142,7 +142,7 @@ export async function generateArticle(query, language, writingStyle) {
 
         // Use AbortController for timeout - 45 seconds
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000);
+        const timeoutId = setTimeout(() => controller.abort(), 51000);
 
         try {
             // Make API request to DeepSeek API
