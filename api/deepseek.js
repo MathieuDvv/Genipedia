@@ -3,7 +3,6 @@ export const config = {
 };
 
 export default async function handler(req) {
-    // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
         return new Response(null, {
             status: 204,
@@ -16,7 +15,7 @@ export default async function handler(req) {
     }
 
     if (req.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method not allowed', message: 'Only POST requests are allowed' }), {
+        return new Response(JSON.stringify({ error: { message: 'Method not allowed' } }), {
             status: 405,
             headers: {
                 'Content-Type': 'application/json',
@@ -28,14 +27,19 @@ export default async function handler(req) {
     try {
         const body = await req.json();
 
-        // Validate request body
         if (!body.messages || !Array.isArray(body.messages)) {
-            throw new Error('Invalid request body: messages array is required');
+            return new Response(JSON.stringify({ error: { message: 'Invalid request body: messages array is required' } }), {
+                status: 400,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            });
         }
 
         const API_KEY = process.env.DEEPSEEK_API_KEY;
         if (!API_KEY) {
-            throw new Error('DEEPSEEK_API_KEY is not set');
+            return new Response(JSON.stringify({ error: { message: 'DEEPSEEK_API_KEY environment variable is not set on Vercel' } }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+            });
         }
 
         const response = await fetch('https://api.deepseek.com/chat/completions', {
@@ -55,22 +59,17 @@ export default async function handler(req) {
         if (!response.ok) {
             const errorText = await response.text();
             console.error('DeepSeek API error detail:', errorText);
-            let errorJson;
+            let errorMessage = errorText;
             try {
-                errorJson = JSON.parse(errorText);
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.error?.message || errorText;
             } catch (e) {
-                errorJson = { error: { message: errorText } };
+                // use raw text
             }
 
-            return new Response(JSON.stringify({
-                error: errorJson.error?.message || 'DeepSeek API error',
-                message: 'Failed to get response from DeepSeek API'
-            }), {
+            return new Response(JSON.stringify({ error: { message: errorMessage } }), {
                 status: response.status,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
             });
         }
 
@@ -78,22 +77,13 @@ export default async function handler(req) {
 
         return new Response(JSON.stringify(data), {
             status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
     } catch (error) {
         console.error('DeepSeek API handler error:', error);
-        return new Response(JSON.stringify({
-            error: 'Internal server error',
-            message: error.message
-        }), {
+        return new Response(JSON.stringify({ error: { message: error.message || 'Internal server error' } }), {
             status: 500,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
     }
 }

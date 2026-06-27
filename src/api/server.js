@@ -95,12 +95,12 @@ app.post('/api/deepseek', async (req, res) => {
   try {
     const apiKey = process.env.DEEPSEEK_API_KEY;
     if (!apiKey) {
-      throw new Error('DeepSeek API key not configured');
+      throw new Error('DEEPSEEK_API_KEY environment variable is not set');
     }
 
     // Validate request body
     if (!req.body.messages || !Array.isArray(req.body.messages)) {
-      return res.status(400).json({ error: 'Invalid request', message: 'messages array is required' });
+      return res.status(400).json({ error: { message: 'messages array is required' } });
     }
 
     const response = await axios.post(
