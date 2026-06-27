@@ -17,17 +17,6 @@ const CONFIG = {
         presence_penalty: 0.0
     },
 
-    // Unsplash API configuration (proxied)
-    UNSPLASH: {
-        API_URL: '/api/unsplash',
-        ACCESS_KEY: 'proxy-handled', // No need for client-side key
-        SECRET_KEY: 'proxy-handled', // No need for client-side key
-        APP_ID: '716699',
-        PARAMS: {
-            per_page: 3
-        }
-    },
-
     // ElevenLabs API configuration (proxied)
     ELEVENLABS: {
         API_URL: '/api/elevenlabs',
@@ -104,8 +93,7 @@ export const APP_SETTINGS = {
     defaultAccentColor: 'black',
     apiEndpoints: {
         deepseek: '/api/deepseek',
-        elevenlabs: '/api/elevenlabs/tts',
-        unsplash: '/api/unsplash/photos/random'
+        elevenlabs: '/api/elevenlabs/tts'
     },
     voiceId: '21m00Tcm4TlvDq8ikWAM', // ElevenLabs voice ID
     supportedLanguages: [

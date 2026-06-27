@@ -6,8 +6,9 @@ This guide explains how to set up the Node.js proxy server to secure your API ke
 
 The proxy server handles API requests to:
 - DeepSeek for article generation
-- Unsplash for images
 - ElevenLabs for text-to-speech
+
+Images are fetched directly from Wikipedia via the public MediaWiki API (no keys needed).
 
 All API keys are stored in a `.env` file on the server, keeping them hidden from users.
 
@@ -28,8 +29,6 @@ Create a `.env` file in your project root with your API keys:
 
 ```
 DEEPSEEK_API_KEY=your_deepseek_api_key
-UNSPLASH_ACCESS_KEY=your_unsplash_access_key
-UNSPLASH_SECRET_KEY=your_unsplash_secret_key
 ELEVENLABS_API_KEY=your_elevenlabs_api_key
 PORT=3000
 ```
@@ -82,8 +81,6 @@ npm start
 4. Set environment variables:
    ```bash
    heroku config:set DEEPSEEK_API_KEY=your_key
-   heroku config:set UNSPLASH_ACCESS_KEY=your_key
-   heroku config:set UNSPLASH_SECRET_KEY=your_key
    heroku config:set ELEVENLABS_API_KEY=your_key
    ```
 5. Deploy your code:
@@ -103,7 +100,7 @@ npm start
 1. Start the server locally 
 2. Open your browser to `http://localhost:3000`
 3. Try searching for an article to test the DeepSeek API
-4. Check that images load correctly (Unsplash API)
+4. Check that images load correctly (Wikipedia / MediaWiki API)
 5. Test the text-to-speech functionality (ElevenLabs API)
 
 Everything should work exactly as before, but now your API keys are secure!
@@ -119,4 +116,4 @@ If you encounter issues:
 
 ## Security Note
 
-While this proxy setup hides your API keys from users, remember that all requests are still being made on behalf of your server. Be sure to monitor usage to prevent abuse of your API quotas. 
+While this proxy setup hides your API keys from users, remember that all requests are still being made on behalf of your server. Be sure to monitor usage to prevent abuse of your API quotas.

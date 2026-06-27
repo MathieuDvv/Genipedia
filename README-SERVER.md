@@ -5,7 +5,8 @@ This server acts as a proxy for the Genipedia web application, securing API keys
 ## Features
 
 - Securely hides API keys from client-side code
-- Proxies requests to DeepSeek, Unsplash, and ElevenLabs APIs
+- Proxies requests to DeepSeek and ElevenLabs APIs
+- Images are fetched directly from Wikipedia via the MediaWiki API (no proxy needed)
 - Maintains all existing website functionality without modifying the HTML, CSS, or JS
 
 ## Prerequisites
@@ -23,8 +24,6 @@ npm install
 3. Create a `.env` file with your API keys:
 ```
 DEEPSEEK_API_KEY=your_deepseek_api_key
-UNSPLASH_ACCESS_KEY=your_unsplash_access_key
-UNSPLASH_SECRET_KEY=your_unsplash_secret_key
 ELEVENLABS_API_KEY=your_elevenlabs_api_key
 PORT=3000
 ```
@@ -67,9 +66,10 @@ The server works by:
 ## API Endpoints
 
 - `/api/deepseek` - Proxy for DeepSeek API
-- `/api/unsplash/photos/random` - Proxy for Unsplash photo search
 - `/api/elevenlabs/tts/:voiceId` - Proxy for ElevenLabs text-to-speech
 - `/api/elevenlabs/voices` - Proxy for ElevenLabs voices list
+
+Wikipedia images are fetched directly from the client via the public MediaWiki API.
 
 ## Security Considerations
 
@@ -79,4 +79,4 @@ The server works by:
 
 ## License
 
-[MIT](LICENSE) 
+[MIT](LICENSE)

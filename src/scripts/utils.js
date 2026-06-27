@@ -217,13 +217,9 @@ function generatePDF(articleData) {
             
             ${articleData.imageUrl ? `
                 <img class="article-image" src="${articleData.imageUrl}" alt="${escapeHTML(articleData.title)}">
-                ${articleData.imageSource && articleData.imageSource.includes('unsplash.com') ? `
+                ${articleData.imageSource ? `
                     <div class="image-caption">
-                        ${articleData.imageTitle && articleData.imageTitle.includes('Image by ') ? `
-                            Photo by ${articleData.imageTitle.replace('Image by ', '').replace(' on Unsplash', '')} on Unsplash
-                        ` : `
-                            Photo from Unsplash
-                        `}
+                        Image from ${articleData.imageSource.includes('wikipedia.org') ? 'Wikipedia' : articleData.imageSource}
                     </div>
                 ` : ''}
             ` : ''}
@@ -337,16 +333,9 @@ function downloadHTML(articleData) {
             
             ${articleData.imageUrl ? `
                 <img class="article-image" src="${articleData.imageUrl}" alt="${escapeHTML(articleData.title)}">
-                ${articleData.imageSource && articleData.imageSource.includes('unsplash.com') ? `
+                ${articleData.imageSource ? `
                     <div class="image-caption">
-                        ${articleData.imageTitle && articleData.imageTitle.includes('Image by ') ? `
-                            Photo by <a href="${articleData.imageSource}" target="_blank" rel="noopener">
-                                ${articleData.imageTitle.replace('Image by ', '').replace(' on Unsplash', '')}
-                            </a> on 
-                            <a href="https://unsplash.com/?utm_source=genipedia&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a>
-                        ` : `
-                            Photo from <a href="https://unsplash.com/?utm_source=genipedia&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a>
-                        `}
+                        Image from <a href="${articleData.imageSource}" target="_blank" rel="noopener">${articleData.imageSource.includes('wikipedia.org') ? 'Wikipedia' : articleData.imageSource}</a>
                     </div>
                 ` : ''}
             ` : ''}
@@ -386,31 +375,7 @@ function downloadHTML(articleData) {
     document.body.removeChild(downloadLink);
 }
 
-// Fetch image from Unsplash API
-async function fetchImageFromUnsplash(query) {
-    try {
-        const cleanQuery = query.replace(/[^\w\s]/gi, '').trim();
-        const url = `/api/unsplash/photos/random?query=${encodeURIComponent(cleanQuery)}`;
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`Unsplash API request failed with status ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        return {
-            success: true,
-            imageUrl: data.urls.regular,
-            sourceUrl: data.links.html,
-            title: `Image by ${data.user.name} on Unsplash`
-        };
-    } catch (error) {
-        console.error('Error fetching image from Unsplash:', error);
-        return { success: false };
-    }
-}
+// Preloads an image
 
 /**
  * Formats audio time in MM:SS format
@@ -533,24 +498,6 @@ function getScrollPercentage() {
  */
 function copyToClipboard(text) {
     return navigator.clipboard.writeText(text);
-}
-
-// Trigger Unsplash download event
-async function triggerUnsplashDownload(sourceUrl) {
-    if (!sourceUrl || !sourceUrl.includes('unsplash.com')) {
-        return;
-    }
-    
-    try {
-        // Create a download URL from the source URL
-        const downloadUrl = `${sourceUrl}/download`;
-        
-        // Make a HEAD request to trigger the download event
-        await fetch(downloadUrl, { method: 'HEAD' });
-        console.log('Unsplash download event triggered for:', sourceUrl);
-    } catch (error) {
-        console.error('Error triggering Unsplash download event:', error);
-    }
 }
 
 /**
@@ -874,7 +821,6 @@ export {
     isElevenLabsBetaEnabled,
     generatePDF,
     downloadHTML,
-    fetchImageFromUnsplash,
     formatAudioTime,
     preloadImage,
     throttle,
@@ -885,7 +831,6 @@ export {
     isInViewport,
     getScrollPercentage,
     copyToClipboard,
-    triggerUnsplashDownload,
     createRateLimiter,
     getSelectedTTSApi,
     saveSelectedTTSApi,
@@ -914,7 +859,6 @@ if (typeof window !== 'undefined') {
         isElevenLabsBetaEnabled,
         generatePDF,
         downloadHTML,
-        fetchImageFromUnsplash,
         formatAudioTime,
         preloadImage,
         throttle,
@@ -925,7 +869,6 @@ if (typeof window !== 'undefined') {
         isInViewport,
         getScrollPercentage,
         copyToClipboard,
-        triggerUnsplashDownload,
         createRateLimiter,
         getSelectedTTSApi,
         saveSelectedTTSApi,

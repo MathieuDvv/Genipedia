@@ -49,11 +49,9 @@ Genipedia/
    ```
    Then edit the `.env` file and add your API keys:
    ```
-   DEEPSEEK_API_KEY=your_deepseek_api_key
-   UNSPLASH_ACCESS_KEY=your_unsplash_access_key
-   UNSPLASH_SECRET_KEY=your_unsplash_secret_key
-   ELEVENLABS_API_KEY=your_elevenlabs_api_key
-   PORT=3000
+    DEEPSEEK_API_KEY=your_deepseek_api_key
+    ELEVENLABS_API_KEY=your_elevenlabs_api_key
+    PORT=3000
    ```
 
    ### API Keys Setup
@@ -62,11 +60,6 @@ Genipedia/
    - Sign up for an account at [DeepSeek](https://www.deepseek.com/)
    - Navigate to your account settings to find your API key
    - Add it to the `.env` file as `DEEPSEEK_API_KEY`
-
-   #### Unsplash API Keys
-   - Create a developer account at [Unsplash](https://unsplash.com/developers)
-   - Register a new application to get your Access Key and Secret Key
-   - Add them to the `.env` file as `UNSPLASH_ACCESS_KEY` and `UNSPLASH_SECRET_KEY`
 
    #### ElevenLabs API Key
    - Create an account at [ElevenLabs](https://elevenlabs.io)
@@ -93,7 +86,7 @@ npm run dev
 - Responsive design for mobile and desktop
 - Multi-language support
 - Search history
-- Image integration with Unsplash
+- Image integration with Wikipedia via MediaWiki API
 - Article caching for improved performance
 
 ## Technologies Used
@@ -103,7 +96,7 @@ npm run dev
 - CSS for styling
 - DeepSeek API for AI content generation
 - ElevenLabs API for text-to-speech
-- Unsplash API for images
+- Wikipedia / MediaWiki API for images
 
 ## API Keys
 
@@ -112,8 +105,8 @@ The application requires the following API keys:
 ### DeepSeek API
 Required for AI-powered article generation. Get your API key from [DeepSeek](https://deepseek.com).
 
-### Unsplash API
-Required for fetching relevant images for articles. Get your API key from [Unsplash](https://unsplash.com/developers).
+### Wikipedia / MediaWiki API
+Images are sourced from Wikipedia via the free MediaWiki API. No API key required.
 
 ### ElevenLabs API
 Required for text-to-speech functionality. Get your API key from [ElevenLabs](https://elevenlabs.io).
@@ -125,7 +118,7 @@ Add these keys to your `.env` file as described in the Setup section.
 AIPedia includes a caching system to improve performance and reduce API calls:
 
 - **Article Caching**: Generated articles are cached in the browser's session storage
-- **Image Caching**: Images fetched from Unsplash are also cached
+- **Image Caching**: Images fetched from Wikipedia are also cached
 - **Cache Toggle**: Users can enable or disable caching via the settings menu
 - **Cache Indicators**: The geek metrics display shows when content is loaded from cache
 - **Cache Clearing**: Cache is automatically cleared when caching is disabled

@@ -565,47 +565,23 @@ export function renderArticle(articleData) {
             }
         };
 
-        // Add click event to trigger download event for Unsplash
-        if (articleData.imageSource.includes('unsplash.com')) {
-            // Trigger the Unsplash download event when the image is loaded
-            articleImage.addEventListener('load', () => {
-                // Use the utility function to trigger the download event
-                if (window.AIPediaUtils && window.AIPediaUtils.triggerUnsplashDownload) {
-                    window.AIPediaUtils.triggerUnsplashDownload(articleData.imageSource);
-                }
-            });
-
-            // Add click handler for manual download
-            articleImage.addEventListener('click', () => {
-                // Create a hidden anchor to trigger the download event
-                const downloadLink = document.createElement('a');
-                downloadLink.href = `${articleData.imageSource}/download`;
-                downloadLink.target = '_blank';
-                downloadLink.style.display = 'none';
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            });
-            articleImage.style.cursor = 'pointer';
-            articleImage.title = 'Click to download original image from Unsplash';
-        }
+        // Make image clickable to open source article
+        articleImage.style.cursor = 'pointer';
+        articleImage.title = 'View on Wikipedia';
+        articleImage.addEventListener('click', () => {
+            window.open(articleData.sourceUrl, '_blank');
+        });
 
         articleImageContainer.appendChild(articleImage);
 
         const imageCaption = document.createElement('div');
         imageCaption.className = 'image-caption';
 
-        // Properly attribute Unsplash photos according to guidelines
-        if (articleData.imageSource.includes('unsplash.com')) {
-            // Extract photographer name from the title if available
-            let photographerName = 'Photographer';
-
-            // The image title is stored in articleData.imageTitle from the fetchImageForTopic function
-            if (articleData.imageTitle && articleData.imageTitle.includes('Image by ')) {
-                photographerName = articleData.imageTitle.replace('Image by ', '').replace(' on Unsplash', '');
-            }
-
-            imageCaption.innerHTML = `Photo by <a href="${articleData.imageSource}" target="_blank" rel="noopener">${photographerName}</a> on <a href="https://unsplash.com/?utm_source=genipedia&utm_medium=referral" target="_blank" rel="noopener">Unsplash</a>`;
+        // Attribution for Wikipedia images
+        if (articleData.imageSource && articleData.imageSource.includes('wikipedia.org')) {
+            imageCaption.innerHTML = `Image from <a href="${articleData.imageSource}" target="_blank" rel="noopener">Wikipedia</a>${articleData.imageTitle ? ` — ${articleData.imageTitle}` : ''}`;
+        } else if (articleData.imageSource) {
+            imageCaption.textContent = stripMarkdown(articleData.imageTitle || articleData.title);
         } else {
             imageCaption.textContent = stripMarkdown(articleData.title);
         }

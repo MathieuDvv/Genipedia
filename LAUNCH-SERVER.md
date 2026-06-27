@@ -38,7 +38,6 @@ Server running on port 3000
 
 2. Click the test buttons to verify each API works through the proxy:
    - DeepSeek API Test
-   - Unsplash API Test
    - ElevenLabs API Test
 
 3. If all tests pass, you're ready to use the main application:
@@ -70,4 +69,4 @@ Remember to:
 
 You can monitor API usage by checking the server logs, which will show all requests and any errors that occur.
 
-Happy publishing with your secure API proxy! 
+Happy publishing with your secure API proxy!

@@ -65,13 +65,7 @@
     </div>
     
     <div class="test-section">
-        <h2>2. Unsplash API Test</h2>
-        <button id="test-unsplash">Test Unsplash API</button>
-        <div id="unsplash-result">Results will appear here...</div>
-    </div>
-    
-    <div class="test-section">
-        <h2>3. ElevenLabs API Test</h2>
+        <h2>2. ElevenLabs API Test</h2>
         <button id="test-elevenlabs">Test ElevenLabs API</button>
         <div id="elevenlabs-result">Results will appear here...</div>
     </div>
@@ -119,32 +113,6 @@
                     <p class="error">❌ Error: ${error.message}</p>
                 `;
                 console.error('DeepSeek API test error:', error);
-            }
-        });
-        
-        // Test Unsplash API
-        document.getElementById('test-unsplash').addEventListener('click', async () => {
-            const resultDiv = document.getElementById('unsplash-result');
-            resultDiv.innerHTML = 'Testing Unsplash API...';
-            
-            try {
-                const response = await fetch('/api/unsplash/photos/random?query=nature');
-                
-                if (!response.ok) {
-                    throw new Error(`API request failed with status ${response.status}`);
-                }
-                
-                const data = await response.json();
-                resultDiv.innerHTML = `
-                    <p class="success">✅ Success!</p>
-                    <img src="${data.urls.small}" alt="${data.alt_description || 'Unsplash image'}">
-                    <p>Photo by <a href="${data.user.links.html}" target="_blank">${data.user.name}</a> on Unsplash</p>
-                `;
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <p class="error">❌ Error: ${error.message}</p>
-                `;
-                console.error('Unsplash API test error:', error);
             }
         });
         

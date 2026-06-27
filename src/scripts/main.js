@@ -383,9 +383,14 @@ function init() {
         window.open('https://ko-fi.com/mathieudvv', '_blank');
     });
 
-    // Handle Twitter button click
+    // Handle X (Twitter) button click
     document.getElementById('twitter-button').addEventListener('click', function () {
-        window.open('https://twitter.com/mathieudv', '_blank');
+        window.open('https://x.com/dotSlimy', '_blank');
+    });
+
+    // Handle LinkedIn button click
+    document.getElementById('linkedin-button').addEventListener('click', function () {
+        window.open('https://www.linkedin.com/in/mathieu-da-vinha-260620416/', '_blank');
     });
 
     // Handle Bug Report button click

@@ -646,7 +646,7 @@ async function fetchImageForTopic(topic) {
         }
 
         // Try to fetch an image with the suggested term
-        let imageResult = await fetchUnsplashImage(searchTerm);
+        let imageResult = await fetchWikiImage(searchTerm);
 
         // If V2 is enabled and we have fallback terms, try them if the primary search failed
         if (useAiSuggestion && window.suggestedImageTerms && window.suggestedImageTerms.length > 1) {
@@ -661,7 +661,7 @@ async function fetchImageForTopic(topic) {
                     const fallbackTerm = window.suggestedImageTerms[i];
                     console.log(`Trying fallback term ${i}: ${fallbackTerm}`);
 
-                    const fallbackResult = await fetchUnsplashImage(fallbackTerm);
+                    const fallbackResult = await fetchWikiImage(fallbackTerm);
 
                     if (fallbackResult && fallbackResult.success) {
                         imageResult = fallbackResult;
@@ -677,7 +677,7 @@ async function fetchImageForTopic(topic) {
         if (!imageResult || !imageResult.success) {
             console.log('All search terms failed, using generic fallback');
             const fallbackTerm = topic.split(' ')[0];
-            imageResult = await fetchUnsplashImage(fallbackTerm);
+            imageResult = await fetchWikiImage(fallbackTerm);
         }
 
         // Add information about the search term used
@@ -885,50 +885,61 @@ async function suggestImageSearchTerm(query) {
 }
 
 /**
- * Fetches an image for a topic
+ * Fetches a Wikipedia image for a topic using the MediaWiki API
  * @param {string} query - The search query
  * @returns {Promise<Object>} - The image data object with imageUrl, sourceUrl, and title
  */
-export async function fetchUnsplashImage(query) {
-    console.log('Fetching image for topic:', query);
+export async function fetchWikiImage(query) {
+    console.log('Fetching Wikipedia image for topic:', query);
 
     try {
-        // Check cache for image search results
         const cachedImage = window.AIPediaUtils.getCachedImage(query);
+        if (cachedImage) return cachedImage;
 
-        if (cachedImage) {
-            return cachedImage;
-        }
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`;
+        const searchResponse = await fetch(searchUrl);
 
-        // Try Unsplash API through our proxy endpoint
-        console.log('Fetching from Unsplash API via proxy');
-        const response = await fetch(`/api/unsplash/photos/random?query=${encodeURIComponent(query)}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            console.warn(`Unsplash API request failed with status ${response.status}`);
+        if (!searchResponse.ok) {
+            console.warn(`Wikipedia search failed with status ${searchResponse.status}`);
             return null;
         }
 
-        const data = await response.json();
-        console.log('Image found on Unsplash:', data.urls.regular);
+        const searchData = await searchResponse.json();
+        const pages = searchData.query?.search;
+        if (!pages || pages.length === 0) {
+            console.warn('No Wikipedia pages found for query:', query);
+            return null;
+        }
 
-        const imageData = {
-            imageUrl: data.urls.regular,
-            sourceUrl: data.links.html,
-            title: `Image by ${data.user.name} on Unsplash`
+        const pageTitle = pages[0].title;
+
+        const imageUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=${encodeURIComponent(pageTitle)}&pithumbsize=500&format=json&origin=*`;
+        const imageResponse = await fetch(imageUrl);
+
+        if (!imageResponse.ok) {
+            console.warn(`Wikipedia image request failed with status ${imageResponse.status}`);
+            return null;
+        }
+
+        const imageData = await imageResponse.json();
+        const pageId = Object.keys(imageData.query?.pages || {})[0];
+        const page = imageData.query?.pages?.[pageId];
+
+        if (!page?.thumbnail) {
+            console.warn('No image found for Wikipedia page:', pageTitle);
+            return null;
+        }
+
+        const result = {
+            imageUrl: page.thumbnail.source,
+            sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
+            title: pageTitle
         };
 
-        // Cache the image data
-        window.AIPediaUtils.cacheImage(query, imageData);
-
-        return imageData;
+        window.AIPediaUtils.cacheImage(query, result);
+        return result;
     } catch (error) {
-        console.error('Error fetching image:', error);
+        console.error('Error fetching Wikipedia image:', error);
         return null;
     }
 }

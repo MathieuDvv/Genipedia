@@ -141,67 +141,6 @@ app.post('/api/deepseek', async (req, res) => {
   }
 });
 
-// Proxy endpoint for Unsplash API
-app.get('/api/unsplash/photos/random', async (req, res) => {
-  try {
-    const query = req.query.query;
-
-    // Validate query parameter
-    if (!query || query.length > 100) {
-      return res.status(400).json({
-        error: 'Invalid query',
-        message: 'Query parameter is required and must be less than 100 characters.'
-      });
-    }
-
-    // Sanitize the query - remove any potentially harmful characters
-    const sanitizedQuery = query.replace(/[^\w\s-]/g, '').trim();
-
-    if (!sanitizedQuery) {
-      return res.status(400).json({
-        error: 'Invalid query',
-        message: 'Query contains invalid characters.'
-      });
-    }
-
-    const response = await axios.get(`https://api.unsplash.com/photos/random`, {
-      params: {
-        query: sanitizedQuery,
-        client_id: process.env.UNSPLASH_ACCESS_KEY
-      }
-    });
-    res.json(response.data);
-  } catch (error) {
-    console.error('Unsplash API error:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
-      error: error.response?.data || 'Internal Server Error'
-    });
-  }
-});
-
-// Proxy endpoint for Unsplash download tracking
-app.get('/api/unsplash/download', async (req, res) => {
-  try {
-    const downloadUrl = req.query.url;
-    if (!downloadUrl) {
-      return res.status(400).json({ error: 'Missing URL parameter' });
-    }
-
-    const response = await axios.get(downloadUrl, {
-      headers: {
-        'Authorization': `Client-ID ${process.env.UNSPLASH_ACCESS_KEY}`
-      }
-    });
-
-    res.status(200).json({ success: true });
-  } catch (error) {
-    console.error('Unsplash download tracking error:', error.response?.data || error.message);
-    res.status(error.response?.status || 500).json({
-      error: error.response?.data || 'Internal Server Error'
-    });
-  }
-});
-
 // Proxy endpoint for ElevenLabs text-to-speech
 app.post('/api/elevenlabs/tts/:voiceId', async (req, res) => {
   try {

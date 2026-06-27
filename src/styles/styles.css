@@ -218,6 +218,16 @@ body.dark-theme .twitter-button:hover {
     background-color: var(--hover-color);
 }
 
+body.dark-theme .linkedin-button {
+    background-color: var(--background-color);
+    color: var(--accent-color);
+    border-color: var(--border-color);
+}
+
+body.dark-theme .linkedin-button:hover {
+    background-color: var(--hover-color);
+}
+
 /* Ensure dark mode modals have proper colors */
 body.dark-theme .modal-content {
     background-color: var(--modal-bg);
@@ -2964,6 +2974,33 @@ body.dark-theme .popup-content {
 }
 
 .twitter-button .lucide {
+    width: 20px;
+    height: 20px;
+}
+
+/* LinkedIn button */
+.linkedin-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--background-color);
+    border: var(--border-width) solid var(--border-color);
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--button-shadow);
+}
+
+.linkedin-button:hover {
+    background-color: var(--hover-color);
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.linkedin-button .lucide {
     width: 20px;
     height: 20px;
 }
