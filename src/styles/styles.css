@@ -452,21 +452,12 @@ body:has(.modal.visible) .fixed-buttons-container {
     background-color: transparent;
     padding: 10px;
     display: block;
+    object-fit: contain;
 }
 
 .dark-theme .title-logo {
-    background-color: transparent;
-}
-
-.title-logo img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: block;
-}
-
-.dark-theme .title-logo img {
     filter: invert(1);
+    background-color: transparent;
 }
 
 
@@ -3028,7 +3019,7 @@ body.dark-theme .popup-content {
 
 /* Rotating icon container */
 .rotating-icon-container {
-    display: none;
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 20px;
