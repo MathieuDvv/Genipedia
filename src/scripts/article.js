@@ -140,9 +140,9 @@ export async function generateArticle(query, language, writingStyle) {
         window.estimatedCost = estimateTokenCost(window.tokenCount);
         console.log(`Estimated tokens: ${window.tokenCount}, Estimated cost: ${window.estimatedCost}`);
 
-        // Use AbortController for timeout - 30 seconds for v4 flash
+        // Use AbortController for timeout - 15 seconds for v4 flash
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         try {
             // Make API request to DeepSeek API

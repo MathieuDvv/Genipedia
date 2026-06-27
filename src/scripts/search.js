@@ -596,11 +596,11 @@ export function updateHistoryList(list) {
  * @returns {number} - The estimated wait time in seconds
  */
 export function estimateWaitTime(query) {
-    // Base time of 8 seconds (halved for v4 flash)
-    let baseTime = 8;
+    // Base time of 4 seconds (halved again)
+    let baseTime = 4;
 
-    // Add 1 second for every 20 characters in the query
-    let queryTime = Math.floor(query.length / 20);
+    // Add 1 second for every 40 characters in the query
+    let queryTime = Math.floor(query.length / 40);
 
     // Adjust based on network conditions
     // Use navigator.connection if available to adjust for network speed
@@ -621,8 +621,8 @@ export function estimateWaitTime(query) {
     // Calculate total time with network adjustment
     const totalTime = (baseTime + queryTime) * networkMultiplier;
 
-    // Return the estimated time, ensuring it's at least 5 seconds
-    return Math.max(5, Math.round(totalTime));
+    // Return the estimated time, ensuring it's at least 3 seconds
+    return Math.max(3, Math.round(totalTime));
 }
 
 /**
