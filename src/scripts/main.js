@@ -395,7 +395,7 @@ function init() {
 
     // Handle Bug Report button click
     bugReportButton.addEventListener('click', function () {
-        window.open('https://github.com/mathieudv/genipedia/issues', '_blank');
+        window.open('https://github.com/MathieuDvv/Genipedia/issues', '_blank');
     });
 
     // Site title click resets the application

@@ -466,10 +466,7 @@ body:has(.modal.visible) .fixed-buttons-container {
 }
 
 .dark-theme .title-logo img {
-    filter: none;
-    /* No filter for dark mode */
-    background-color: transparent;
-    /* Changed from #212121 */
+    filter: invert(1);
 }
 
 
