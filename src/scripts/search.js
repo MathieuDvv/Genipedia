@@ -85,7 +85,7 @@ export async function performSearch(query, language, writingStyle) {
     // Show loading state
     const loadingElement = document.createElement('div');
     loadingElement.className = 'loading';
-    const estimatedTime = estimateWaitTime(query) * 2;
+    const estimatedTime = estimateWaitTime(query);
     loadingElement.innerHTML = `
         <div class="estimated-time">${getLocaleString('estimated_time', estimatedTime)}</div>
         <div class="progress-bar">
@@ -596,11 +596,11 @@ export function updateHistoryList(list) {
  * @returns {number} - The estimated wait time in seconds
  */
 export function estimateWaitTime(query) {
-    // Base time of 15 seconds (reduced from 30)
-    let baseTime = 15;
+    // Base time of 8 seconds (halved for v4 flash)
+    let baseTime = 8;
 
-    // Add 1 second for every 10 characters in the query (reduced from 2)
-    let queryTime = Math.floor(query.length / 10);
+    // Add 1 second for every 20 characters in the query
+    let queryTime = Math.floor(query.length / 20);
 
     // Adjust based on network conditions
     // Use navigator.connection if available to adjust for network speed
@@ -621,8 +621,8 @@ export function estimateWaitTime(query) {
     // Calculate total time with network adjustment
     const totalTime = (baseTime + queryTime) * networkMultiplier;
 
-    // Return the estimated time, ensuring it's at least 10 seconds (reduced from 20)
-    return Math.max(10, Math.round(totalTime));
+    // Return the estimated time, ensuring it's at least 5 seconds
+    return Math.max(5, Math.round(totalTime));
 }
 
 /**
