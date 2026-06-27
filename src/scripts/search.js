@@ -87,7 +87,6 @@ export async function performSearch(query, language, writingStyle) {
     loadingElement.className = 'loading';
     const estimatedTime = estimateWaitTime(query) * 2;
     loadingElement.innerHTML = `
-        <div class="loading-spinner"></div>
         <div class="estimated-time">${getLocaleString('estimated_time', estimatedTime)}</div>
         <div class="progress-bar">
             <div class="progress-fill"></div>
@@ -886,6 +885,7 @@ async function suggestImageSearchTerm(query) {
 
 /**
  * Fetches a Wikipedia image for a topic using the MediaWiki API
+ * Uses combined search + pageimages in a single request for efficiency
  * @param {string} query - The search query
  * @returns {Promise<Object>} - The image data object with imageUrl, sourceUrl, and title
  */
@@ -896,48 +896,38 @@ export async function fetchWikiImage(query) {
         const cachedImage = window.AIPediaUtils.getCachedImage(query);
         if (cachedImage) return cachedImage;
 
-        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srlimit=1&format=json&origin=*`;
-        const searchResponse = await fetch(searchUrl);
+        const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=5&prop=pageimages&pithumbsize=600&pilimit=5&format=json&origin=*`;
+        const response = await fetch(url);
 
-        if (!searchResponse.ok) {
-            console.warn(`Wikipedia search failed with status ${searchResponse.status}`);
+        if (!response.ok) {
+            console.warn(`Wikipedia API request failed with status ${response.status}`);
             return null;
         }
 
-        const searchData = await searchResponse.json();
-        const pages = searchData.query?.search;
-        if (!pages || pages.length === 0) {
+        const data = await response.json();
+        const pages = data.query?.pages;
+
+        if (!pages) {
             console.warn('No Wikipedia pages found for query:', query);
             return null;
         }
 
-        const pageTitle = pages[0].title;
+        const sortedPages = Object.values(pages).sort((a, b) => (a.index || 0) - (b.index || 0));
 
-        const imageUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&titles=${encodeURIComponent(pageTitle)}&pithumbsize=500&format=json&origin=*`;
-        const imageResponse = await fetch(imageUrl);
-
-        if (!imageResponse.ok) {
-            console.warn(`Wikipedia image request failed with status ${imageResponse.status}`);
-            return null;
+        for (const page of sortedPages) {
+            if (page.thumbnail) {
+                const result = {
+                    imageUrl: page.thumbnail.source,
+                    sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
+                    title: page.title
+                };
+                window.AIPediaUtils.cacheImage(query, result);
+                return result;
+            }
         }
 
-        const imageData = await imageResponse.json();
-        const pageId = Object.keys(imageData.query?.pages || {})[0];
-        const page = imageData.query?.pages?.[pageId];
-
-        if (!page?.thumbnail) {
-            console.warn('No image found for Wikipedia page:', pageTitle);
-            return null;
-        }
-
-        const result = {
-            imageUrl: page.thumbnail.source,
-            sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(pageTitle)}`,
-            title: pageTitle
-        };
-
-        window.AIPediaUtils.cacheImage(query, result);
-        return result;
+        console.warn('No images found in Wikipedia search results for:', query);
+        return null;
     } catch (error) {
         console.error('Error fetching Wikipedia image:', error);
         return null;

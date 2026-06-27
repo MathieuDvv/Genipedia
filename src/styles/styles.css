@@ -1533,16 +1533,6 @@ body.dark-theme .geek-metrics li {
     text-align: center;
 }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 5px solid var(--border-color);
-    border-top: 5px solid var(--accent-color);
-    border-radius: 50%;
-    margin: 0 auto 20px;
-    animation: spin 1s linear infinite;
-}
-
 .estimated-time {
     margin-top: 20px;
     font-size: 0.9rem;
@@ -1566,16 +1556,6 @@ body.dark-theme .geek-metrics li {
     background-color: var(--accent-color);
     width: 0%;
     transition: width 30s linear;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
 }
 
 /* Error State */
@@ -2973,11 +2953,6 @@ body.dark-theme .popup-content {
     box-shadow: none;
 }
 
-.twitter-button .lucide {
-    width: 20px;
-    height: 20px;
-}
-
 /* LinkedIn button */
 .linkedin-button {
     display: flex;
@@ -2998,11 +2973,6 @@ body.dark-theme .popup-content {
     background-color: var(--hover-color);
     transform: translateY(0);
     box-shadow: none;
-}
-
-.linkedin-button .lucide {
-    width: 20px;
-    height: 20px;
 }
 
 /* Full width button */
